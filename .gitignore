@@ -1,0 +1,24 @@
+# Build artifacts
+*.o
+*.a
+*.so
+build/
+bin/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Test and run outputs
+*.log
+ts_report.json
+results/*.json
+results/*.jsonl
+results/*.html
+results/bench/*.csv
+!results/samples/
+
+# Demos binaries
+demos/bin/
