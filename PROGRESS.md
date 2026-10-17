@@ -10,11 +10,11 @@
   - [x] Initial stubs for runtime and demo 01 compiling both instrumented and baseline
   - [x] `requirements.txt` with jinja2, plotly, pytest
 
-- [ ] **Phase 2: Vector clocks & thread registry**
-  - [ ] `src/vector_clock.c` & `src/vector_clock.h` (init, copy, inc, join/max, happens-before compare, format)
-  - [ ] Dual vector clocks per thread: `HB_t` (happens-before) and `ST_t` (structural)
-  - [ ] `src/threads.c` thread registry with `__thread` tid, trampoline, `pthread_create`, `pthread_join`
-  - [ ] C unit tests in `tests/unit/test_vector_clock.c` and `tests/unit/test_threads.c`
+- [x] **Phase 2: Vector clocks & thread registry**
+  - [x] `src/vector_clock.c` & `src/vector_clock.h` (init, copy, inc, join/max, happens-before compare, format)
+  - [x] Dual vector clocks per thread: `HB_t` (happens-before) and `ST_t` (structural)
+  - [x] `src/threads.c` thread registry with `__thread` tid, trampoline, `pthread_create`, `pthread_join`
+  - [x] C unit tests in `tests/unit/test_vector_clock.c` and `tests/unit/test_threads.c`
 
 - [ ] **Phase 3: Sync wrappers & lockset**
   - [ ] `src/sync.c` wrappers for mutex (`lock`, `trylock`, `unlock`), condvar (`wait`, `signal`, `broadcast`), barrier (`wait`)
