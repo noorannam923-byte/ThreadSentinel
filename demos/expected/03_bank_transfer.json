@@ -1,0 +1,9 @@
+{
+  "program": "03_bank_transfer",
+  "expected": {
+    "hybrid": "CONFIRMED",
+    "lockset": "CONFIRMED",
+    "hb": "CONFIRMED"
+  },
+  "variable": "account_b_bal"
+}

@@ -1,0 +1,9 @@
+{
+  "program": "12_linked_list_race",
+  "expected": {
+    "hybrid": "CONFIRMED",
+    "lockset": "CONFIRMED",
+    "hb": "CONFIRMED"
+  },
+  "variable": "list_head"
+}

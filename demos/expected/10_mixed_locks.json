@@ -1,0 +1,9 @@
+{
+  "program": "10_mixed_locks",
+  "expected": {
+    "hybrid": "CONFIRMED",
+    "lockset": "CONFIRMED",
+    "hb": "CONFIRMED"
+  },
+  "variable": "x"
+}

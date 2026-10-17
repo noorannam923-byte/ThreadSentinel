@@ -1,0 +1,9 @@
+{
+  "program": "04_check_then_act",
+  "expected": {
+    "hybrid": "CONFIRMED",
+    "lockset": "CONFIRMED",
+    "hb": "CONFIRMED"
+  },
+  "variable": "initialized"
+}

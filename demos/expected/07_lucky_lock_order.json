@@ -1,0 +1,9 @@
+{
+  "program": "07_lucky_lock_order",
+  "expected": {
+    "hybrid": "POTENTIAL",
+    "lockset": "CONFIRMED",
+    "hb": "NONE"
+  },
+  "variable": "x"
+}

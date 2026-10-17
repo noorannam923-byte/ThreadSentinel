@@ -1,0 +1,9 @@
+{
+  "program": "08_condvar_handoff_safe",
+  "expected": {
+    "hybrid": "NONE",
+    "lockset": "NONE",
+    "hb": "NONE"
+  },
+  "variable": "payload"
+}

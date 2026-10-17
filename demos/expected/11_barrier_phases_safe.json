@@ -1,0 +1,9 @@
+{
+  "program": "11_barrier_phases_safe",
+  "expected": {
+    "hybrid": "NONE",
+    "lockset": "CONFIRMED",
+    "hb": "NONE"
+  },
+  "variable": "phase_data"
+}

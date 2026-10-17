@@ -1,0 +1,9 @@
+{
+  "program": "05_producer_consumer_bug",
+  "expected": {
+    "hybrid": "CONFIRMED",
+    "lockset": "CONFIRMED",
+    "hb": "CONFIRMED"
+  },
+  "variable": "count"
+}

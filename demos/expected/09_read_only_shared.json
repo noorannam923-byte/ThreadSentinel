@@ -1,0 +1,9 @@
+{
+  "program": "09_read_only_shared",
+  "expected": {
+    "hybrid": "NONE",
+    "lockset": "NONE",
+    "hb": "NONE"
+  },
+  "variable": "config_table"
+}

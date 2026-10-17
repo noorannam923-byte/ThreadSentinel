@@ -1,0 +1,9 @@
+{
+  "program": "06_fork_join_safe",
+  "expected": {
+    "hybrid": "NONE",
+    "lockset": "CONFIRMED",
+    "hb": "NONE"
+  },
+  "variable": "output_data"
+}

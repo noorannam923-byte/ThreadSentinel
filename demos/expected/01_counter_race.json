@@ -1,0 +1,9 @@
+{
+  "program": "01_counter_race",
+  "expected": {
+    "hybrid": "CONFIRMED",
+    "lockset": "CONFIRMED",
+    "hb": "CONFIRMED"
+  },
+  "variable": "counter"
+}

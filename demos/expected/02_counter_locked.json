@@ -1,0 +1,9 @@
+{
+  "program": "02_counter_locked",
+  "expected": {
+    "hybrid": "NONE",
+    "lockset": "NONE",
+    "hb": "NONE"
+  },
+  "variable": "counter"
+}

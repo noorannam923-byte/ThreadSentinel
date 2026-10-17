@@ -30,21 +30,21 @@
   - [x] Unit tests in `tests/unit/test_shadow.c` and `tests/unit/test_detector.c`
   - [x] Validation with early demos (01, 02, 06, 07)
 
-- [ ] **Phase 5: All 12 demo programs & integration tests**
-  - [ ] Demo 01: `counter_race` (CONFIRMED)
-  - [ ] Demo 02: `counter_locked` (SAFE)
-  - [ ] Demo 03: `bank_transfer` (CONFIRMED)
-  - [ ] Demo 04: `check_then_act` (CONFIRMED)
-  - [ ] Demo 05: `producer_consumer_bug` (CONFIRMED)
-  - [ ] Demo 06: `fork_join_safe` (SAFE - showcase vs lockset FP)
-  - [ ] Demo 07: `lucky_lock_order` (POTENTIAL - showcase vs pure HB miss)
-  - [ ] Demo 08: `condvar_handoff_safe` (SAFE)
-  - [ ] Demo 09: `read_only_shared` (SAFE)
-  - [ ] Demo 10: `mixed_locks` (CONFIRMED)
-  - [ ] Demo 11: `barrier_phases_safe` (SAFE)
-  - [ ] Demo 12: `linked_list_race` (CONFIRMED)
-  - [ ] Ground truth JSON files in `demos/expected/`
-  - [ ] Pytest suite in `tests/integration/test_demos.py`
+- [x] **Phase 5: All 12 demo programs & integration tests**
+  - [x] Demo 01: `counter_race` (CONFIRMED)
+  - [x] Demo 02: `counter_locked` (SAFE)
+  - [x] Demo 03: `bank_transfer` (CONFIRMED)
+  - [x] Demo 04: `check_then_act` (CONFIRMED)
+  - [x] Demo 05: `producer_consumer_bug` (CONFIRMED)
+  - [x] Demo 06: `fork_join_safe` (SAFE - showcase vs lockset FP)
+  - [x] Demo 07: `lucky_lock_order` (POTENTIAL - showcase vs pure HB miss)
+  - [x] Demo 08: `condvar_handoff_safe` (SAFE)
+  - [x] Demo 09: `read_only_shared` (SAFE)
+  - [x] Demo 10: `mixed_locks` (CONFIRMED)
+  - [x] Demo 11: `barrier_phases_safe` (SAFE)
+  - [x] Demo 12: `linked_list_race` (CONFIRMED)
+  - [x] Ground truth JSON files in `demos/expected/`
+  - [x] Pytest suite in `tests/integration/test_demos.py`
 
 - [ ] **Phase 6: Prevention runtime**
   - [ ] `src/prevention.c` & `src/prevention.h` (striped guard locks, protected address/symbol set)
