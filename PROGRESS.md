@@ -16,11 +16,11 @@
   - [x] `src/threads.c` thread registry with `__thread` tid, trampoline, `pthread_create`, `pthread_join`
   - [x] C unit tests in `tests/unit/test_vector_clock.c` and `tests/unit/test_threads.c`
 
-- [ ] **Phase 3: Sync wrappers & lockset**
-  - [ ] `src/sync.c` wrappers for mutex (`lock`, `trylock`, `unlock`), condvar (`wait`, `signal`, `broadcast`), barrier (`wait`)
-  - [ ] Lock registry assigning IDs 0..63 and tracking `locks_held(t)` bitmask
-  - [ ] `src/lockset.c` & `src/lockset.h` bitsets and Eraser state machine (`VIRGIN`, `EXCLUSIVE`, `SHARED`, `SHARED_MODIFIED`)
-  - [ ] C unit tests for lockset operations and Eraser state transitions in `tests/unit/test_lockset.c`
+- [x] **Phase 3: Sync wrappers & lockset**
+  - [x] `src/sync.c` wrappers for mutex (`lock`, `trylock`, `unlock`), condvar (`wait`, `signal`, `broadcast`), barrier (`wait`)
+  - [x] Lock registry assigning IDs 0..63 and tracking `locks_held(t)` bitmask
+  - [x] `src/lockset.c` & `src/lockset.h` bitsets and Eraser state machine (`VIRGIN`, `EXCLUSIVE`, `SHARED`, `SHARED_MODIFIED`)
+  - [x] C unit tests for lockset operations and Eraser state transitions in `tests/unit/test_lockset.c`
 
 - [ ] **Phase 4: Shadow memory, hybrid detector & reporting**
   - [ ] `src/shadow.c` & `src/shadow.h` hash table (addr -> access history, last write, reads since last write, candidate lockset)
