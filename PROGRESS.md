@@ -22,13 +22,13 @@
   - [x] `src/lockset.c` & `src/lockset.h` bitsets and Eraser state machine (`VIRGIN`, `EXCLUSIVE`, `SHARED`, `SHARED_MODIFIED`)
   - [x] C unit tests for lockset operations and Eraser state transitions in `tests/unit/test_lockset.c`
 
-- [ ] **Phase 4: Shadow memory, hybrid detector & reporting**
-  - [ ] `src/shadow.c` & `src/shadow.h` hash table (addr -> access history, last write, reads since last write, candidate lockset)
-  - [ ] `src/detector.c` & `src/detector.h` hybrid classification (`CONFIRMED`, `POTENTIAL`, `SAFE`) + `TS_DETECTOR` modes (`hybrid`, `lockset`, `hb`)
-  - [ ] Memory access macros implementation: `TS_READ`, `TS_WRITE`, `TS_UPDATE`, `TS_FREE`
-  - [ ] `src/report.c` & `src/report.h` race reporting (colored stderr + JSON report `TS_REPORT`, race de-duplication)
-  - [ ] Unit tests in `tests/unit/test_shadow.c` and `tests/unit/test_detector.c`
-  - [ ] Validation with early demos (01, 02, 06, 07)
+- [x] **Phase 4: Shadow memory, hybrid detector & reporting**
+  - [x] `src/shadow.c` & `src/shadow.h` hash table (addr -> access history, last write, reads since last write, candidate lockset)
+  - [x] `src/detector.c` & `src/detector.h` hybrid classification (`CONFIRMED`, `POTENTIAL`, `SAFE`) + `TS_DETECTOR` modes (`hybrid`, `lockset`, `hb`)
+  - [x] Memory access macros implementation: `TS_READ`, `TS_WRITE`, `TS_UPDATE`, `TS_FREE`
+  - [x] `src/report.c` & `src/report.h` race reporting (colored stderr + JSON report `TS_REPORT`, race de-duplication)
+  - [x] Unit tests in `tests/unit/test_shadow.c` and `tests/unit/test_detector.c`
+  - [x] Validation with early demos (01, 02, 06, 07)
 
 - [ ] **Phase 5: All 12 demo programs & integration tests**
   - [ ] Demo 01: `counter_race` (CONFIRMED)

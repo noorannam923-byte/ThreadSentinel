@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "mode": "detect",
+    "detector": "hybrid",
+    "runtime_ms": 0.85
+  },
+  "summary": {
+    "confirmed_races": 1,
+    "potential_races": 0,
+    "total_unique_races": 1
+  },
+  "races": [
+    {
+      "verdict": "CONFIRMED",
+      "severity": "HIGH",
+      "address": "0x7ffed8c1f664",
+      "variable": "shared_var",
+      "reason": "not ordered by happens-before, no common lock",
+      "first_access": {
+        "type": "WRITE",
+        "thread": 1,
+        "location": "test.c:10",
+        "locks": 0,
+        "hb": [0,1],
+        "st": [0,1]
+      },
+      "second_access": {
+        "type": "WRITE",
+        "thread": 2,
+        "location": "test.c:20",
+        "locks": 0,
+        "hb": [0,0,1],
+        "st": [0,0,1]
+      }
+    }
+  ],
+  "protected_items": [
+  ]
+}
