@@ -18,6 +18,7 @@ SRCS = $(SRC_DIR)/runtime.c \
        $(SRC_DIR)/lockset.c \
        $(SRC_DIR)/shadow.c \
        $(SRC_DIR)/detector.c \
+       $(SRC_DIR)/deadlock.c \
        $(SRC_DIR)/prevention.c \
        $(SRC_DIR)/report.c \
        $(SRC_DIR)/trace.c
@@ -27,6 +28,14 @@ PIC_OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%_pic.o, $(SRCS))
 
 STATIC_LIB = libsentinel.a
 SHARED_LIB = libsentinel.so
+
+# LD_PRELOAD shim: the runtime rebuilt with -DTS_PRELOAD plus the interposers
+PRELOAD_LIB = libsentinel_preload.so
+PRELOAD_DIR = $(BUILD_DIR)/preload
+PRELOAD_OBJS = $(patsubst $(SRC_DIR)/%.c, $(PRELOAD_DIR)/%.o, $(SRCS) $(SRC_DIR)/real.c $(SRC_DIR)/preload.c)
+
+# Rebuild objects when an included header changes
+DEPFLAGS = -MMD -MP
 
 DEMO_SRCS = $(wildcard $(DEMOS_DIR)/*.c)
 DEMO_BINS = $(patsubst $(DEMOS_DIR)/%.c, $(DEMOS_BIN)/%, $(DEMO_SRCS))
@@ -44,7 +53,7 @@ VENV_PYTEST = $(VENV)/bin/pytest
 
 .PHONY: all demos baseline bench-bins test unit-test integration-test setup demo-all bench valgrind clean
 
-all: $(STATIC_LIB) $(SHARED_LIB) demos
+all: $(STATIC_LIB) $(SHARED_LIB) $(PRELOAD_LIB) demos
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -56,16 +65,25 @@ $(TESTS_BIN):
 	mkdir -p $(TESTS_BIN)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/%_pic.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(FPIC_CFLAGS) -c $< -o $@
+	$(CC) $(FPIC_CFLAGS) $(DEPFLAGS) -c $< -o $@
+
+$(PRELOAD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(PRELOAD_DIR)
+	$(CC) $(FPIC_CFLAGS) $(DEPFLAGS) -DTS_PRELOAD -c $< -o $@
 
 $(STATIC_LIB): $(OBJS)
 	ar rcs $@ $^
 
 $(SHARED_LIB): $(PIC_OBJS)
 	$(CC) -shared -o $@ $^ -pthread
+
+$(PRELOAD_LIB): $(PRELOAD_OBJS)
+	$(CC) -shared -o $@ $^ -pthread -ldl
+
+-include $(wildcard $(BUILD_DIR)/*.d $(PRELOAD_DIR)/*.d)
 
 demos: $(STATIC_LIB) $(SHARED_LIB) | $(DEMOS_BIN)
 	@for src in $(wildcard $(DEMOS_DIR)/*.c); do \
@@ -130,4 +148,4 @@ valgrind: all
 	bash tools/valgrind_all.sh
 
 clean:
-	rm -rf $(BUILD_DIR) $(DEMOS_BIN) $(TESTS_BIN) $(BENCH_BIN) $(STATIC_LIB) $(SHARED_LIB) ts_report.json
+	rm -rf $(BUILD_DIR) $(DEMOS_BIN) $(TESTS_BIN) $(BENCH_BIN) $(STATIC_LIB) $(SHARED_LIB) $(PRELOAD_LIB) ts_report.json

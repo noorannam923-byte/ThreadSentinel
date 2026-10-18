@@ -14,6 +14,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef TS_PRELOAD
+#include "real.h"   /* runtime calls go to libc, not back into the shim */
+#endif
+
 /* Runtime operation modes */
 typedef enum {
     TS_MODE_DETECT,

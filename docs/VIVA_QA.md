@@ -58,7 +58,7 @@ this run, or only could have. That drives severity and the prevention policy (on
 trigger live protection).
 
 **10. Walk me through demo 07.**
-See [ALGORITHMS.md §9](ALGORITHMS.md#9-worked-example-07_lucky_lock_order). At T2's write:
+See [ALGORITHMS.md §10](ALGORITHMS.md#10-worked-example-07_lucky_lock_order). At T2's write:
 `hb_ordered` is true (1 ≤ HB[T1] = 1, inherited through the mutex), `st_ordered` is false
 (1 ≤ ST[T1] = 0 fails), no common lock → POTENTIAL. Pure HB and TSan report nothing.
 
@@ -80,9 +80,10 @@ the main item of future work. The `TS_DISABLE` build gives a zero-cost baseline 
 source.
 
 **14. How are `pthread_*` calls intercepted?**
-`sentinel.h` renames them with macros (`#define pthread_mutex_lock ts_mutex_lock`, …) in user
-code. The wrapper calls the real function, then updates the clocks under the runtime lock. An
-`LD_PRELOAD` shim is listed as a stretch goal.
+Two ways. In annotated code, `sentinel.h` renames them with macros (`pthread_mutex_lock(m)` becomes
+`ts_mutex_lock_at(m, "m", __FILE__, __LINE__)`). For unmodified binaries, `libsentinel_preload.so`
+defines the pthread functions itself and is injected with `LD_PRELOAD`. In both cases the wrapper
+calls the real function, then updates the clocks under the runtime lock.
 
 ## Prevention
 
@@ -167,8 +168,9 @@ instrumented build keeps every access, so the race shows (20/20). It is a good e
 **28. What can Thread Sentinel not detect?**
 Accesses that are not annotated; races with an older write that was later overwritten by an
 ordered write (only the last write is kept); races hidden by the accumulating condvar/barrier
-clocks; anything beyond 64 threads or 64 locks. It detects data races, not deadlocks or atomicity
-violations in general (deadlock detection via a lock-order graph is a planned stretch goal).
+clocks; anything beyond 64 threads or 64 locks. It detects data races and lock-order deadlocks,
+not atomicity violations in general, and not deadlocks involving rwlocks, semaphores or condition
+waits. Under the `LD_PRELOAD` shim it sees no memory accesses, so it finds no races there.
 
 **29. Is POTENTIAL ever a false alarm?**
 It can be, when the "unrelated" mutex actually encodes a real protocol: for example, a flag set
@@ -177,6 +179,28 @@ even though the data accesses are not inside `m`. That is why POTENTIAL is repor
 severity and does not trigger live protection.
 
 **30. What would you do with more time?**
-Compiler-pass instrumentation (or binary instrumentation) instead of macros; sharding the runtime
-lock; resetting barrier/condvar clocks per generation; reusing thread slots; lock-order deadlock
-detection; and the `LD_PRELOAD` interception shim.
+Compiler-pass instrumentation (or binary instrumentation) instead of macros, which would also give
+the preload path race detection; sharding the runtime lock; resetting barrier/condvar clocks per
+generation; reusing thread slots; extending deadlock detection to rwlocks and semaphores.
+
+## Stretch features
+
+**31. How does the deadlock detector work?**
+Every blocking `pthread_mutex_lock(m)` taken while holding locks `H` adds edges `h → m` to a
+lock-order graph. A new edge that closes a cycle is reported as a POTENTIAL DEADLOCK if the cycle
+spans at least two threads and no single "gate" lock was held across all its edges. On demo 13 it
+reports `lock_a → lock_b → lock_a` from a run that finished normally.
+([ALGORITHMS.md §9](ALGORITHMS.md#9-potential-deadlocks-the-lock-order-graph))
+
+**32. Why the "two threads" and "gate lock" conditions?**
+Both remove impossible deadlocks. A single thread taking A→B and later B→A cannot block itself. If
+both inversions happen while holding an outer lock G, only one thread can be inside G at a time,
+so the inner acquisitions never interleave. These are the standard GoodLock refinements.
+
+**33. What was the hardest part of the `LD_PRELOAD` shim?**
+Self-recursion. The shim defines `pthread_mutex_lock`, so the runtime's own calls (including its
+global lock) would land back in the shim. Under `-DTS_PRELOAD`, `real.h` redirects every runtime
+call to a pointer resolved with `dlsym(RTLD_NEXT)`. The pointers start as resolver stubs, so they
+work before any constructor runs, and condvars are resolved with `dlvsym` to get the right
+symbol version. A second problem: `LD_PRELOAD` is inherited by wrapper processes like `timeout`,
+whose empty report overwrote the real one. Processes that make no pthread calls now write none.

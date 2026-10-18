@@ -116,6 +116,25 @@ def generate(data: Dict[str, Any], output_path: str) -> None:
           </table>
         </section>"""
 
+    deadlock_section = ""
+    deadlocks = data.get("deadlocks", [])
+    if deadlocks:
+        rows = ""
+        for i, d in enumerate(deadlocks, 1):
+            cycle = " → ".join(d.get("cycle", []) + d.get("cycle", [])[:1])
+            for e in d.get("edges", []):
+                rows += (f"<tr><td>#{i}</td><td><code>{cycle}</code></td><td>T{e.get('thread','?')}</td>"
+                         f"<td>takes <code>{e.get('acquired','?')}</code> holding <code>{e.get('held','?')}</code></td>"
+                         f"<td>{e.get('location','?')}</td></tr>")
+        deadlock_section = f"""
+        <section class="card">
+          <h2>Potential Deadlocks (lock-order cycles)</h2>
+          <table class="race-table">
+            <thead><tr><th>#</th><th>Cycle</th><th>Thread</th><th>Acquisition</th><th>Location</th></tr></thead>
+            <tbody>{rows}</tbody>
+          </table>
+        </section>"""
+
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -199,6 +218,8 @@ def generate(data: Dict[str, Any], output_path: str) -> None:
   </div>
 
   {prot_section}
+
+  {deadlock_section}
 
   <script>
   (function() {{

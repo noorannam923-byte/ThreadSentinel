@@ -77,9 +77,10 @@
   - [x] Valgrind memory leak verification (`make valgrind` → `tools/valgrind_all.sh`, all 12 demos clean)
   - [x] Optional GitHub Actions CI workflow (`.github/workflows/ci.yml`; not yet run, as there is no remote)
 
-- [ ] **Phase 10: Stretch features**
-  - [ ] Potential deadlock detection (lock-order acquisition graph cycle detection)
-  - [ ] `LD_PRELOAD` synchronization interception shim
+- [x] **Phase 10: Stretch features**
+  - [x] Potential deadlock detection (lock-order acquisition graph cycle detection): `src/deadlock.c`,
+        demo 13, `tests/unit/test_deadlock.c`, `tests/integration/test_deadlock.py`
+  - [x] `LD_PRELOAD` synchronization interception shim: `libsentinel_preload.so` (`src/preload.c`, `src/real.c`)
 
 ---
 
@@ -119,5 +120,16 @@
   demo's own race-induced leak (the race orphans a chain of nodes). Pass 1 runs prevent mode with a
   protect file and full leak checking, so any leak is the runtime's. Pass 2 runs detect mode with
   memory errors fatal and leaks not counted.
+- **`pthread_mutex_lock` is a function-like macro** (`ts_mutex_lock_at(m, #m, __FILE__, __LINE__)`)
+  so deadlock reports can name the mutex and the call site. Taking its address now gets the real,
+  unwrapped function.
+- **Deadlock filters.** Cycles are reported only when they span 2+ threads and share no gate lock
+  (GoodLock refinements). `trylock` registers the mutex but adds no incoming edges.
+- **Demo 13 has no `demos/expected/` file**, so the race benchmark stays at 12 demos. Its
+  deadlock verdict is tested in `test_deadlock.py`.
+- **Preload shim scope.** It intercepts synchronisation only, so it reports deadlocks but not races.
+  A preloaded process that makes no pthread calls writes no report (`LD_PRELOAD` is inherited by
+  `timeout`, `env` and shells, which were overwriting the real report).
+- **Makefile tracks header dependencies** (`-MMD -MP`); header edits previously didn't rebuild objects.
 - **`sentinel run` arguments.** Binary arguments go after `--` (previously every flag after the
   binary path, including `--report`, was silently passed to the binary).

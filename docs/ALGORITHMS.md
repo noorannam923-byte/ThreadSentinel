@@ -137,7 +137,33 @@ both accesses' thread, location, lockset and full HB/ST clocks.
 - **Limitation.** A region must name every protected variable it touches. Touching another one
   takes that stripe out of order.
 
-## 9. Worked example: `07_lucky_lock_order`
+## 9. Potential deadlocks: the lock-order graph
+
+`src/deadlock.c`, a GoodLock-style analysis over mutexes:
+
+- **Edges.** When thread `t` blocks in `lock(m)` while holding `H`, add the edge `h → m` for every
+  `h ∈ H`. Each edge remembers its first thread, the source location of the acquisition, its *gate
+  set* `H \ {h}` (the other locks held at the time), and the set of all threads that took it.
+  `trylock` adds no incoming edges because it cannot block, but it registers the mutex so that
+  later acquisitions under it do record edges. Prevention guard stripes never appear: they are
+  not user mutexes and are always taken in ascending order.
+- **Cycle check.** A cycle can only close when an edge `h → m` is new (or gains a new thread). A
+  breadth-first search over the 64-bit adjacency masks looks for a path `m ⇝ h`; if one exists,
+  `h → m ⇝ h` is a cycle.
+- **Filters.** The cycle is reported only if
+  1. the threads across its edges number at least two: one thread cannot deadlock with itself by
+     lock ordering; and
+  2. the intersection of the edges' gate sets is empty: a common outer lock serialises the inner
+     acquisitions, so the inversion can never interleave.
+- **Reporting.** Cycles are de-duplicated by their set of locks and appear on stderr and in the
+  JSON report's `deadlocks` array, each edge with its thread and location.
+
+On `13_lock_order_inversion`, T1 adds `lock_a → lock_b` (line 36). Ten milliseconds later T2
+adds `lock_b → lock_a` (line 48). The search finds `lock_a ⇝ lock_b`, there are two threads, and no
+gate lock, so the cycle is reported, although T1 had released both locks long before T2 started
+and the run completed normally.
+
+## 10. Worked example: `07_lucky_lock_order`
 
 ```c
 // T1                              // T2

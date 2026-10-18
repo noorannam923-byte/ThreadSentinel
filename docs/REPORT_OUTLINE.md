@@ -46,7 +46,7 @@ which repository artefact supplies it. Suggested length is 30–40 pages plus ap
 4.3 Classification rule (CONFIRMED / POTENTIAL / safe), with a correctness argument (ST ⊑ HB)
 4.4 Eraser lockset mode
 4.5 Prevention: protected set, stripes, regions, ascending-order deadlock avoidance (proof sketch)
-4.6 **Worked example**: demo 07 step by step *(docs/ALGORITHMS.md §9)*
+4.6 **Worked example**: demo 07 step by step *(docs/ALGORITHMS.md §10)*
 
 ## 5. Implementation (5–6 pages)
 5.1 Technology and build (C11, pthreads, gcc flags, `-DTS_DISABLE`, static/shared library)
@@ -76,7 +76,7 @@ which repository artefact supplies it. Suggested length is 30–40 pages plus ap
 
 ## 8. Conclusion and Future Work (2 pages)
 8.1 Summary of contributions and objectives met
-8.2 Limitations *(docs/ARCHITECTURE.md §8)*
+8.2 Limitations *(docs/ARCHITECTURE.md §9)*
 8.3 Future work: compiler instrumentation, sharded runtime lock, per-generation barrier clocks,
     deadlock detection, `LD_PRELOAD` shim
 

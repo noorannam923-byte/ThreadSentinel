@@ -5,7 +5,8 @@
 Thread Sentinel is a C11 runtime library for multi-threaded C programs. It watches the shared
 accesses you mark, tells you which ones race and how sure it is, and can then serialise exactly
 those accesses at runtime so the bug stops happening. No source changes are needed beyond
-the markings.
+the markings. It also reports lock-order inversions (potential deadlocks), including in unmodified
+binaries via an `LD_PRELOAD` shim.
 
 ---
 
@@ -128,6 +129,33 @@ Without a protect file, prevent mode protects variables live, from their first C
 onward. That cannot undo damage done during the first interleaving (see
 [evaluation §4](docs/EVALUATION.md#4-prevention-effectiveness)).
 
+### Potential deadlocks (lock-order cycles)
+
+Every blocking `pthread_mutex_lock` taken while other mutexes are held adds an edge to a lock-order
+graph. A cycle created by two or more threads, with no common outer "gate" lock, is reported even
+when this run did not deadlock:
+
+```
+[ThreadSentinel] POTENTIAL DEADLOCK: lock-order cycle &lock_a -> &lock_b -> &lock_a
+   T1 takes &lock_b while holding &lock_a at demos/13_lock_order_inversion.c:36
+   T2 takes &lock_a while holding &lock_b at demos/13_lock_order_inversion.c:48
+```
+
+The JSON report lists cycles under `deadlocks` and counts them in `summary.potential_deadlocks`.
+
+### Unmodified binaries: the `LD_PRELOAD` shim
+
+`make` also builds `libsentinel_preload.so`, which intercepts the pthread thread, mutex, condvar and
+barrier functions of a program that was **not** compiled against `sentinel.h`:
+
+```bash
+TS_REPORT=r.json LD_PRELOAD=./libsentinel_preload.so ./any_pthread_program
+```
+
+Without the `TS_*` macros memory accesses are invisible, so the shim reports **potential deadlocks,
+not data races**. Mutexes are named by address and call sites by code address. Don't preload it
+into a binary that is already linked with `libsentinel.a`.
+
 ### Command-line tools
 
 ```bash
@@ -155,6 +183,9 @@ $PY -m sentinel bench                                                 # full eva
 | 10 | `mixed_locks` | two different locks for one variable | CONFIRMED | CONFIRMED | CONFIRMED |
 | 11 | `barrier_phases_safe` | – (ordered by a barrier) | safe | **false positive** | safe |
 | 12 | `linked_list_race` | unlocked list push | CONFIRMED | CONFIRMED | CONFIRMED |
+| 13 | `lock_order_inversion` | A→B in one thread, B→A in another (no race) | safe + **potential deadlock** | safe | safe |
+
+Demos 01–12 are the race-detection benchmark set; demo 13 exercises deadlock detection.
 
 ## 6. Results at a glance
 
@@ -171,8 +202,8 @@ Full tables, charts and discussion: [docs/EVALUATION.md](docs/EVALUATION.md).
 ```
 include/sentinel.h     public API (macros, pthread renames, TS_DISABLE passthrough)
 src/                   runtime: threads, sync, vector clocks, lockset, shadow, detector,
-                       prevention, report, trace
-demos/                 12 demo programs + demos/expected/ ground truth
+                       deadlock, prevention, report, trace; preload.c + real.c (LD_PRELOAD shim)
+demos/                 13 demo programs + demos/expected/ race ground truth (01–12)
 bench/                 scalability workload
 tests/unit/            C unit tests          tests/integration/   pytest suites
 tools/sentinel/        Python CLI: run, demo, report (HTML), replay, bench
@@ -184,7 +215,7 @@ docs/                  ARCHITECTURE, ALGORITHMS, EVALUATION, VIVA_QA, REPORT_OUT
 
 | Target | What it does |
 |---|---|
-| `make` / `make all` | libraries and instrumented demos |
+| `make` / `make all` | `libsentinel.a`, `libsentinel.so`, `libsentinel_preload.so` and instrumented demos |
 | `make baseline` | `_plain` and `_tsan` demo builds |
 | `make test` | unit tests and integration tests (about 6 minutes) |
 | `make bench` | evaluation; regenerates `docs/EVALUATION.md` |
@@ -199,4 +230,4 @@ docs/                  ARCHITECTURE, ALGORITHMS, EVALUATION, VIVA_QA, REPORT_OUT
 
 Implementation status is tracked in [PROGRESS.md](PROGRESS.md). The main limitations are manual
 annotation, a single global runtime lock (it doesn't scale across cores), and fixed limits of
-64 threads and 64 locks. The full list is in [ARCHITECTURE.md §8](docs/ARCHITECTURE.md#8-limits-and-known-gaps).
+64 threads and 64 locks. The full list is in [ARCHITECTURE.md §9](docs/ARCHITECTURE.md#9-limits-and-known-gaps).

@@ -47,6 +47,7 @@ int ts_pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                       void *(*start_routine)(void *), void *arg);
 int ts_pthread_join(pthread_t thread, void **retval);
 int ts_mutex_lock(pthread_mutex_t *mutex);
+int ts_mutex_lock_at(pthread_mutex_t *mutex, const char *name, const char *file, int line);
 int ts_mutex_trylock(pthread_mutex_t *mutex);
 int ts_mutex_unlock(pthread_mutex_t *mutex);
 int ts_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
@@ -86,7 +87,8 @@ int ts_barrier_wait(pthread_barrier_t *barrier);
 #ifndef TS_INTERNAL
 #define pthread_create         ts_pthread_create
 #define pthread_join           ts_pthread_join
-#define pthread_mutex_lock     ts_mutex_lock
+/* Function-like so the lock-order report can name the mutex and the call site */
+#define pthread_mutex_lock(m)  ts_mutex_lock_at((m), #m, __FILE__, __LINE__)
 #define pthread_mutex_trylock  ts_mutex_trylock
 #define pthread_mutex_unlock   ts_mutex_unlock
 #define pthread_cond_wait      ts_cond_wait

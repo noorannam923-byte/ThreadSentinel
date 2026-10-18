@@ -4,6 +4,7 @@
 #include "lockset.h"
 #include "vector_clock.h"
 #include "trace.h"
+#include "deadlock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -120,6 +121,10 @@ static ts_barrier_record_t *get_or_create_barrier(pthread_barrier_t *barrier) {
 }
 
 int ts_mutex_lock(pthread_mutex_t *mutex) {
+    return ts_mutex_lock_at(mutex, NULL, NULL, 0);
+}
+
+int ts_mutex_lock_at(pthread_mutex_t *mutex, const char *name, const char *file, int line) {
     /* Call the real POSIX mutex lock */
     int ret = pthread_mutex_lock(mutex);
     if (ret != 0) return ret;
@@ -128,6 +133,12 @@ int ts_mutex_lock(pthread_mutex_t *mutex) {
     uint32_t tid = ts_get_tid();
     ts_thread_info_t *tinfo = ts_get_thread_info(tid);
     ts_mutex_record_t *rec = get_or_create_mutex(mutex);
+    
+    /* Lock-order graph: edges from every lock already held to this one */
+    char loc[128] = "";
+    if (file && line >= 0) snprintf(loc, sizeof(loc), "%s:%d", file, line);
+    else if (file) snprintf(loc, sizeof(loc), "%s", file); /* preload: "pc 0x..." */
+    deadlock_on_acquire(tid, rec->lock_id, tinfo->locks_held, name, loc);
     
     /* Rule: lock(m) by t: HB only: HB_t = max(HB_t, L_m) */
     vc_join(&tinfo->hb_clock, &rec->hb_clock);
@@ -150,6 +161,10 @@ int ts_mutex_trylock(pthread_mutex_t *mutex) {
     ts_thread_info_t *tinfo = ts_get_thread_info(tid);
     ts_mutex_record_t *rec = get_or_create_mutex(mutex);
     
+    /* trylock cannot block, so it adds no lock-order edges (held_before = 0), but the
+     * mutex must be known to the graph so later acquisitions under it record edges */
+    deadlock_on_acquire(tid, rec->lock_id, 0, NULL, NULL);
+
     /* Successful trylock: update HB clock and locks held */
     vc_join(&tinfo->hb_clock, &rec->hb_clock);
     lockset_add_held(&tinfo->locks_held, rec->lock_id);

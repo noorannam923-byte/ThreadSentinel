@@ -64,6 +64,9 @@ flowchart LR
 | `src/lockset.c` | Lock-address → id (0..63), held-lock bitmask helpers, Eraser state machine | `g_lock_addrs[64]` |
 | `src/shadow.c` | Hash table addr → shadow entry (last write, reads since, Eraser tracker, trace-compaction state) | 65,536 buckets, chained |
 | `src/detector.c` | Per-access classification (Section 5 of ALGORITHMS.md), trace compaction | – |
+| `src/deadlock.c` | Lock-order graph (64×64 adjacency bitmasks), cycle search on each new edge, thread/gate-lock filtering, `deadlocks` report section | `g_adj[64]`, `g_edges[64][64]`, reported cycles |
+| `src/real.c`, `src/real.h` | `LD_PRELOAD` build only: lazily resolved pointers to libc's pthread functions; `real.h` redirects the runtime's own calls to them | `ts_real_pthread_*` |
+| `src/preload.c` | `LD_PRELOAD` build only: defines `pthread_create`, `pthread_mutex_lock`, … and forwards them to the `ts_*` wrappers | `ts_preload_active` |
 | `src/prevention.c` | Protected set, 256 guard stripes, regions with ascending lock order, per-thread hold depth | `g_protected_items[256]`, `g_guard_stripes[256]` |
 | `src/report.c` | De-duplicated race list, coloured stderr lines, JSON report at exit | `g_reported_races[1024]` |
 | `src/trace.c` | Optional JSONL event log (`TS_TRACE`) with 1 MiB buffering | `g_trace_fp` |
@@ -127,7 +130,29 @@ the access itself, not just the bookkeeping.
   flushed when another thread touches the address, on `TS_FREE`, and at exit, so the offline
   replay reaches the same race set as the runtime.
 
-## 7. Python tools
+## 7. The `LD_PRELOAD` build
+
+`libsentinel_preload.so` is the same runtime compiled with `-DTS_PRELOAD`, plus `real.c` and
+`preload.c`:
+
+```
+unmodified program --pthread_mutex_lock()--> preload.c (interposer)
+                                               └─> ts_mutex_lock_at()      sync.c, the normal wrapper
+                                                     └─> pthread_mutex_lock  → macro → ts_real_pthread_mutex_lock
+                                                                               (dlsym RTLD_NEXT → libc)
+```
+
+- Without the redirect in `real.h`, the runtime's own `pthread_mutex_lock` calls (including the
+  global runtime lock) would resolve to the interposer and recurse forever.
+- Each `ts_real_*` pointer starts at a stub that resolves the libc symbol on first call, so it
+  works regardless of constructor order. Condvar functions are resolved with
+  `dlvsym(..., "GLIBC_2.3.2")` to get the current symbol version, not the legacy one.
+- `LD_PRELOAD` is inherited by every process in a command (`timeout`, `env`, shells). A process that
+  never calls a pthread function writes no report, so it cannot overwrite the real one.
+- The shim sees synchronisation only, so it maintains clocks, locksets and the lock-order graph
+  and reports potential deadlocks. Data races need the `TS_*` access macros.
+
+## 8. Python tools
 
 | Command | What it does |
 |---|---|
@@ -139,7 +164,7 @@ the access itself, not just the bookkeeping.
 
 Run them with `PYTHONPATH=tools` from the repository root (the Makefile targets do this).
 
-## 8. Limits and known gaps
+## 9. Limits and known gaps
 
 | Limit | Value / behaviour |
 |---|---|
@@ -152,3 +177,5 @@ Run them with `PYTHONPATH=tools` from the repository root (the Makefile targets 
 | Scalability | every instrumented access takes the global runtime lock (see EVALUATION.md §3) |
 | Shadow history | last write + last read per thread; an older overwritten write is forgotten |
 | Condvar / barrier clocks | accumulate across signals / generations (may hide races, never invents them) |
+| Deadlock detection | mutexes only (not rwlocks/semaphores); first observation of each edge decides its gate set; up to 64 reported cycles |
+| Preload shim | no data-race detection; mutex names and call sites are addresses |

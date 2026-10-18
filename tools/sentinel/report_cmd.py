@@ -14,6 +14,7 @@ RED    = "\033[91m"
 YELLOW = "\033[93m"
 CYAN   = "\033[96m"
 GREEN  = "\033[92m"
+MAGENTA = "\033[95m"
 BOLD   = "\033[1m"
 RESET  = "\033[0m"
 
@@ -59,6 +60,17 @@ def _print_report(data: dict) -> None:
     print(f"  Mode:      {mode}  |  Detector: {detector}  |  Runtime: {runtime:.1f} ms")
     print(f"  {BOLD}Confirmed races:{RESET} {RED if confirmed else GREEN}{confirmed}{RESET}   "
           f"{BOLD}Potential races:{RESET} {YELLOW if potential else GREEN}{potential}{RESET}")
+
+    deadlocks = data.get("deadlocks", [])
+    if deadlocks:
+        print(f"\n  {BOLD}Potential deadlocks:{RESET} {MAGENTA}{len(deadlocks)}{RESET}")
+        for i, d in enumerate(deadlocks, 1):
+            cycle = d.get("cycle", [])
+            print(f"  {BOLD}Deadlock #{i}:{RESET} {MAGENTA}lock-order cycle{RESET} "
+                  + " -> ".join(cycle + cycle[:1]))
+            for e in d.get("edges", []):
+                print(f"    T{e.get('thread','?')} takes {e.get('acquired','?')} while holding "
+                      f"{e.get('held','?')} at {e.get('location','?')}")
 
     if not races:
         print(f"\n  {GREEN}✓ No races detected.{RESET}\n")

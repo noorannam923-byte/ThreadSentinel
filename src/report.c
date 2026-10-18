@@ -1,6 +1,7 @@
 #include "report.h"
 #include "sentinel_internal.h"
 #include "prevention.h"
+#include "deadlock.h"
 #include "vector_clock.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -120,7 +121,13 @@ void report_record_race(const race_report_t *race) {
 
 void report_flush_and_close(void) {
     if (g_report_path[0] == '\0') return;
-    
+#ifdef TS_PRELOAD
+    /* LD_PRELOAD is inherited by every process in a command (timeout, env, shells).
+     * Processes that never called a pthread function must not overwrite the report
+     * written by the one that did. */
+    if (!ts_preload_active) return;
+#endif
+
     FILE *fp = fopen(g_report_path, "w");
     if (!fp) {
         fprintf(stderr, "[ThreadSentinel WARNING] Could not write report to %s\n", g_report_path);
@@ -148,7 +155,8 @@ void report_flush_and_close(void) {
     fprintf(fp, "  \"summary\": {\n");
     fprintf(fp, "    \"confirmed_races\": %d,\n", report_get_confirmed_count());
     fprintf(fp, "    \"potential_races\": %d,\n", report_get_potential_count());
-    fprintf(fp, "    \"total_unique_races\": %d\n", g_race_count);
+    fprintf(fp, "    \"total_unique_races\": %d,\n", g_race_count);
+    fprintf(fp, "    \"potential_deadlocks\": %d\n", deadlock_count());
     fprintf(fp, "  },\n");
     
     fprintf(fp, "  \"races\": [\n");
@@ -192,6 +200,11 @@ void report_flush_and_close(void) {
     /* Output protected addresses list for learn-then-prevent mode */
     fprintf(fp, "  \"protected_items\": [\n");
     prevention_write_protected_json(fp);
+    fprintf(fp, "  ],\n");
+
+    /* Lock-order cycles (keys deliberately avoid "variable", which the protect-file parser reads) */
+    fprintf(fp, "  \"deadlocks\": [\n");
+    deadlock_write_json(fp);
     fprintf(fp, "  ]\n");
     
     fprintf(fp, "}\n");

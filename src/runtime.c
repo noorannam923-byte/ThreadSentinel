@@ -6,6 +6,7 @@
 #include "prevention.h"
 #include "report.h"
 #include "trace.h"
+#include "deadlock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,6 +96,7 @@ void ts_runtime_init(void) {
     ts_sync_init();
     shadow_init();
     detector_init();
+    deadlock_init();
     prevention_init(g_ts_config.protect_file);
     report_init(g_ts_config.report_path, g_ts_config.quiet);
     trace_init(g_ts_config.trace_path);
