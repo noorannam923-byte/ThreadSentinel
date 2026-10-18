@@ -27,3 +27,7 @@ demos/bin/
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+
+# Stray run outputs and local tool config
+test_report.json
+.ignore
