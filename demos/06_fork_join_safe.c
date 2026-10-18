@@ -2,7 +2,7 @@
  * Demo 06: Fork-Join Safe (Structural Ordering Without Locks)
  *
  * Scenario:
- * 1. Main thread initializes shared input array 'input_data'.
+ * 1. Main thread initializes shared input array 'input_data' and zeroes 'output_data'.
  * 2. Main thread forks worker threads (pthread_create).
  * 3. Workers read 'input_data' and write their partial results to 'output_data'.
  * 4. Main thread joins all workers (pthread_join).
@@ -46,9 +46,12 @@ int main(void) {
     
     printf("Starting fork_join_safe with %d workers...\n", NUM_WORKERS);
     
-    /* Step 1: Main initializes input data */
+    /* Step 1: Main initializes input data and zeroes the output slots. The workers'
+     * later lock-free writes to output_data are ordered only by fork, which is what
+     * Eraser cannot see (a main-thread write then a worker write, no common lock). */
     for (int i = 0; i < NUM_WORKERS; i++) {
         TS_WRITE(input_data[i], (i + 1) * 10);
+        TS_WRITE(output_data[i], 0);
     }
     
     /* Step 2: Main forks workers */

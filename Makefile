@@ -42,7 +42,7 @@ VENV_PIP = $(VENV)/bin/pip
 VENV_PYTHON = $(VENV)/bin/python
 VENV_PYTEST = $(VENV)/bin/pytest
 
-.PHONY: all demos baseline test unit-test integration-test setup demo-all bench valgrind clean
+.PHONY: all demos baseline bench-bins test unit-test integration-test setup demo-all bench valgrind clean
 
 all: $(STATIC_LIB) $(SHARED_LIB) demos
 
@@ -80,6 +80,15 @@ baseline: | $(DEMOS_BIN)
 		$(CC) $(CFLAGS) -DTS_DISABLE -fsanitize=thread $$src -o $(DEMOS_BIN)/$${name}_tsan || exit 1; \
 	done
 
+BENCH_BIN = bench/bin
+
+# Scalability workload: instrumented, uninstrumented and TSan builds
+bench-bins: $(STATIC_LIB)
+	@mkdir -p $(BENCH_BIN)
+	$(CC) $(CFLAGS) bench/scale_counter.c -Wl,--whole-archive $(STATIC_LIB) -Wl,--no-whole-archive -o $(BENCH_BIN)/scale_counter
+	$(CC) $(CFLAGS) -DTS_DISABLE bench/scale_counter.c -o $(BENCH_BIN)/scale_counter_plain
+	$(CC) $(CFLAGS) -DTS_DISABLE -fsanitize=thread bench/scale_counter.c -o $(BENCH_BIN)/scale_counter_tsan
+
 unit-test: $(STATIC_LIB) | $(TESTS_BIN)
 	@for src in $(wildcard $(TESTS_DIR)/unit/test_*.c); do \
 		name=$$(basename $$src .c); \
@@ -104,15 +113,15 @@ setup:
 demo-all: all
 	@mkdir -p $(RESULTS_DIR)
 	@if [ -x "$(VENV_PYTHON)" ]; then \
-		$(VENV_PYTHON) -m sentinel demo 01_counter_race; \
+		PYTHONPATH=tools $(VENV_PYTHON) -m sentinel demo 01_counter_race; \
 	else \
 		echo "Python environment not setup. Run 'make setup' first."; \
 	fi
 
-bench: all baseline
+bench: all baseline bench-bins
 	@mkdir -p $(RESULTS_DIR)/bench
 	@if [ -x "$(VENV_PYTHON)" ]; then \
-		$(VENV_PYTHON) -m sentinel bench; \
+		PYTHONPATH=tools $(VENV_PYTHON) -m sentinel bench --no-build; \
 	else \
 		echo "Python environment not setup. Run 'make setup' first."; \
 	fi
@@ -121,4 +130,4 @@ valgrind: all
 	valgrind --leak-check=full --error-exitcode=1 $(DEMOS_BIN)/01_counter_race
 
 clean:
-	rm -rf $(BUILD_DIR) $(DEMOS_BIN) $(TESTS_BIN) $(STATIC_LIB) $(SHARED_LIB) ts_report.json
+	rm -rf $(BUILD_DIR) $(DEMOS_BIN) $(TESTS_BIN) $(BENCH_BIN) $(STATIC_LIB) $(SHARED_LIB) ts_report.json

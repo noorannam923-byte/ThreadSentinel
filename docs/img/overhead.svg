@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 554" width="760" height="554" role="img" aria-label="Runtime overhead factor versus uninstrumented build">
+<style>
+  svg { --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --grid:#e4e3df;
+        --s-detect:#2a78d6; --s-prevent:#eb6834; --s-tsan:#1baf7a; --s-plain:#eda100; }
+  @media (prefers-color-scheme: dark) {
+    svg { --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --grid:#3a3a37;
+          --s-detect:#3987e5; --s-prevent:#d95926; --s-tsan:#199e70; --s-plain:#c98500; }
+  }
+  .bg { fill: var(--surface); }
+  text { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; fill: var(--ink2); font-size: 12px; }
+  .title { fill: var(--ink); font-size: 15px; font-weight: 600; }
+  .label { fill: var(--ink); }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .detect { fill: var(--s-detect); stroke: var(--s-detect); }
+  .prevent { fill: var(--s-prevent); stroke: var(--s-prevent); }
+  .tsan { fill: var(--s-tsan); stroke: var(--s-tsan); }
+  .plain { fill: var(--s-plain); stroke: var(--s-plain); }
+  rect.bar, path.bar { stroke: none; }
+  path.line { fill: none; stroke-width: 2; }
+  circle.dot { stroke: var(--surface); stroke-width: 2; }
+</style>
+<rect class="bg" width="760" height="554"/>
+<text class="title" x="16" y="26">Runtime overhead vs. uninstrumented build (×, log scale)</text>
+<rect class="detect" x="16.0" y="41.0" width="10" height="10" rx="2"/><text x="31.0" y="50.0">Sentinel detect</text><rect class="prevent" x="143.0" y="41.0" width="10" height="10" rx="2"/><text x="158.0" y="50.0">Sentinel prevent</text><rect class="tsan" x="277.0" y="41.0" width="10" height="10" rx="2"/><text x="292.0" y="50.0">ThreadSanitizer</text>
+<line class="grid" x1="190.0" x2="190.0" y1="62" y2="524"/><text x="190.0" y="540" text-anchor="middle">1×</text>
+<line class="grid" x1="249.5" x2="249.5" y1="62" y2="524"/><text x="249.5" y="540" text-anchor="middle">2×</text>
+<line class="grid" x1="328.1" x2="328.1" y1="62" y2="524"/><text x="328.1" y="540" text-anchor="middle">5×</text>
+<line class="grid" x1="387.6" x2="387.6" y1="62" y2="524"/><text x="387.6" y="540" text-anchor="middle">10×</text>
+<line class="grid" x1="447.1" x2="447.1" y1="62" y2="524"/><text x="447.1" y="540" text-anchor="middle">20×</text>
+<line class="grid" x1="525.8" x2="525.8" y1="62" y2="524"/><text x="525.8" y="540" text-anchor="middle">50×</text>
+<line class="grid" x1="585.3" x2="585.3" y1="62" y2="524"/><text x="585.3" y="540" text-anchor="middle">100×</text>
+<line class="grid" x1="644.7" x2="644.7" y1="62" y2="524"/><text x="644.7" y="540" text-anchor="middle">200×</text>
+<line class="grid" x1="723.4" x2="723.4" y1="62" y2="524"/><text x="723.4" y="540" text-anchor="middle">500×</text>
+<text class="label" x="180" y="86.5" text-anchor="end">01_counter_race</text>
+<path class="bar detect" d="M190.0,70.0 H714.5 Q718.0,70.0 718.0,73.5 V73.5 Q718.0,77.0 714.5,77.0 H190.0 Z"><title>01_counter_race — Sentinel detect: 469.6× (3459 ms vs 7 ms)</title></path>
+<path class="bar prevent" d="M190.0,79.0 H700.1 Q703.6,79.0 703.6,82.5 V82.5 Q703.6,86.0 700.1,86.0 H190.0 Z"><title>01_counter_race — Sentinel prevent: 397.3× (2926 ms vs 7 ms)</title></path>
+<path class="bar tsan" d="M190.0,88.0 H453.6 Q457.1,88.0 457.1,91.5 V91.5 Q457.1,95.0 453.6,95.0 H190.0 Z"><title>01_counter_race — ThreadSanitizer: 22.5× (166 ms vs 7 ms)</title></path>
+<text class="label" x="180" y="123.5" text-anchor="end">02_counter_locked</text>
+<path class="bar detect" d="M190.0,107.0 H436.6 Q440.1,107.0 440.1,110.5 V110.5 Q440.1,114.0 436.6,114.0 H190.0 Z"><title>02_counter_locked — Sentinel detect: 18.4× (4599 ms vs 249 ms)</title></path>
+<path class="bar prevent" d="M190.0,116.0 H440.7 Q444.2,116.0 444.2,119.5 V119.5 Q444.2,123.0 440.7,123.0 H190.0 Z"><title>02_counter_locked — Sentinel prevent: 19.3× (4822 ms vs 249 ms)</title></path>
+<path class="bar tsan" d="M190.0,125.0 H407.0 Q410.5,125.0 410.5,128.5 V128.5 Q410.5,132.0 407.0,132.0 H190.0 Z"><title>02_counter_locked — ThreadSanitizer: 13.1× (3257 ms vs 249 ms)</title></path>
+<text class="label" x="180" y="160.5" text-anchor="end">03_bank_transfer</text>
+<path class="bar detect" d="M190.0,144.0 H484.0 Q487.5,144.0 487.5,147.5 V147.5 Q487.5,151.0 484.0,151.0 H190.0 Z"><title>03_bank_transfer — Sentinel detect: 32.0× (614 ms vs 19 ms)</title></path>
+<path class="bar prevent" d="M190.0,153.0 H477.8 Q481.3,153.0 481.3,156.5 V156.5 Q481.3,160.0 477.8,160.0 H190.0 Z"><title>03_bank_transfer — Sentinel prevent: 29.8× (571 ms vs 19 ms)</title></path>
+<path class="bar tsan" d="M190.0,162.0 H635.4 Q638.9,162.0 638.9,165.5 V165.5 Q638.9,169.0 635.4,169.0 H190.0 Z"><title>03_bank_transfer — ThreadSanitizer: 186.8× (3581 ms vs 19 ms)</title></path>
+<text class="label" x="180" y="197.5" text-anchor="end">04_check_then_act</text>
+<path class="bar detect" d="M190.0,181.0 H271.5 Q275.0,181.0 275.0,184.5 V184.5 Q275.0,188.0 271.5,188.0 H190.0 Z"><title>04_check_then_act — Sentinel detect: 2.7× (13 ms vs 5 ms)</title></path>
+<path class="bar prevent" d="M190.0,190.0 H297.8 Q301.3,190.0 301.3,193.5 V193.5 Q301.3,197.0 297.8,197.0 H190.0 Z"><title>04_check_then_act — Sentinel prevent: 3.7× (18 ms vs 5 ms)</title></path>
+<path class="bar tsan" d="M190.0,199.0 H488.6 Q492.1,199.0 492.1,202.5 V202.5 Q492.1,206.0 488.6,206.0 H190.0 Z"><title>04_check_then_act — ThreadSanitizer: 33.8× (167 ms vs 5 ms)</title></path>
+<text class="label" x="180" y="234.5" text-anchor="end">05_producer_consumer_bug</text>
+<path class="bar detect" d="M190.0,218.0 H330.5 Q334.0,218.0 334.0,221.5 V221.5 Q334.0,225.0 330.5,225.0 H190.0 Z"><title>05_producer_consumer_bug — Sentinel detect: 5.4× (46 ms vs 9 ms)</title></path>
+<path class="bar prevent" d="M190.0,227.0 H334.1 Q337.6,227.0 337.6,230.5 V230.5 Q337.6,234.0 334.1,234.0 H190.0 Z"><title>05_producer_consumer_bug — Sentinel prevent: 5.6× (48 ms vs 9 ms)</title></path>
+<path class="bar tsan" d="M190.0,236.0 H457.9 Q461.4,236.0 461.4,239.5 V239.5 Q461.4,243.0 457.9,243.0 H190.0 Z"><title>05_producer_consumer_bug — ThreadSanitizer: 23.6× (205 ms vs 9 ms)</title></path>
+<text class="label" x="180" y="271.5" text-anchor="end">06_fork_join_safe</text>
+<path class="bar detect" d="M190.0,255.0 H292.5 Q296.0,255.0 296.0,258.5 V258.5 Q296.0,262.0 292.5,262.0 H190.0 Z"><title>06_fork_join_safe — Sentinel detect: 3.4× (26 ms vs 8 ms)</title></path>
+<path class="bar prevent" d="M190.0,264.0 H300.5 Q304.0,264.0 304.0,267.5 V267.5 Q304.0,271.0 300.5,271.0 H190.0 Z"><title>06_fork_join_safe — Sentinel prevent: 3.8× (29 ms vs 8 ms)</title></path>
+<path class="bar tsan" d="M190.0,273.0 H308.1 Q311.6,273.0 311.6,276.5 V276.5 Q311.6,280.0 308.1,280.0 H190.0 Z"><title>06_fork_join_safe — ThreadSanitizer: 4.1× (31 ms vs 8 ms)</title></path>
+<text class="label" x="180" y="308.5" text-anchor="end">07_lucky_lock_order</text>
+<path class="bar detect" d="M190.0,292.0 H243.8 Q247.3,292.0 247.3,295.5 V295.5 Q247.3,299.0 243.8,299.0 H190.0 Z"><title>07_lucky_lock_order — Sentinel detect: 1.9× (39 ms vs 20 ms)</title></path>
+<path class="bar prevent" d="M190.0,301.0 H258.2 Q261.7,301.0 261.7,304.5 V304.5 Q261.7,308.0 258.2,308.0 H190.0 Z"><title>07_lucky_lock_order — Sentinel prevent: 2.3× (46 ms vs 20 ms)</title></path>
+<path class="bar tsan" d="M190.0,310.0 H246.8 Q250.3,310.0 250.3,313.5 V313.5 Q250.3,317.0 246.8,317.0 H190.0 Z"><title>07_lucky_lock_order — ThreadSanitizer: 2.0× (40 ms vs 20 ms)</title></path>
+<text class="label" x="180" y="345.5" text-anchor="end">08_condvar_handoff_safe</text>
+<path class="bar detect" d="M190.0,329.0 H253.7 Q257.2,329.0 257.2,332.5 V332.5 Q257.2,336.0 253.7,336.0 H190.0 Z"><title>08_condvar_handoff_safe — Sentinel detect: 2.2× (25 ms vs 12 ms)</title></path>
+<path class="bar prevent" d="M190.0,338.0 H260.7 Q264.2,338.0 264.2,341.5 V341.5 Q264.2,345.0 260.7,345.0 H190.0 Z"><title>08_condvar_handoff_safe — Sentinel prevent: 2.4× (28 ms vs 12 ms)</title></path>
+<path class="bar tsan" d="M190.0,347.0 H264.7 Q268.2,347.0 268.2,350.5 V350.5 Q268.2,354.0 264.7,354.0 H190.0 Z"><title>08_condvar_handoff_safe — ThreadSanitizer: 2.5× (29 ms vs 12 ms)</title></path>
+<text class="label" x="180" y="382.5" text-anchor="end">09_read_only_shared</text>
+<path class="bar detect" d="M190.0,366.0 H515.7 Q519.2,366.0 519.2,369.5 V369.5 Q519.2,373.0 515.7,373.0 H190.0 Z"><title>09_read_only_shared — Sentinel detect: 46.3× (541 ms vs 12 ms)</title></path>
+<path class="bar prevent" d="M190.0,375.0 H505.5 Q509.0,375.0 509.0,378.5 V378.5 Q509.0,382.0 505.5,382.0 H190.0 Z"><title>09_read_only_shared — Sentinel prevent: 41.2× (480 ms vs 12 ms)</title></path>
+<path class="bar tsan" d="M190.0,384.0 H254.1 Q257.6,384.0 257.6,387.5 V387.5 Q257.6,391.0 254.1,391.0 H190.0 Z"><title>09_read_only_shared — ThreadSanitizer: 2.2× (26 ms vs 12 ms)</title></path>
+<text class="label" x="180" y="419.5" text-anchor="end">10_mixed_locks</text>
+<path class="bar detect" d="M190.0,403.0 H456.2 Q459.7,403.0 459.7,406.5 V406.5 Q459.7,410.0 456.2,410.0 H190.0 Z"><title>10_mixed_locks — Sentinel detect: 23.1× (826 ms vs 36 ms)</title></path>
+<path class="bar prevent" d="M190.0,412.0 H422.3 Q425.8,412.0 425.8,415.5 V415.5 Q425.8,419.0 422.3,419.0 H190.0 Z"><title>10_mixed_locks — Sentinel prevent: 15.6× (557 ms vs 36 ms)</title></path>
+<path class="bar tsan" d="M190.0,421.0 H614.0 Q617.5,421.0 617.5,424.5 V424.5 Q617.5,428.0 614.0,428.0 H190.0 Z"><title>10_mixed_locks — ThreadSanitizer: 145.7× (5198 ms vs 36 ms)</title></path>
+<text class="label" x="180" y="456.5" text-anchor="end">11_barrier_phases_safe</text>
+<path class="bar detect" d="M190.0,440.0 H250.4 Q253.9,440.0 253.9,443.5 V443.5 Q253.9,447.0 250.4,447.0 H190.0 Z"><title>11_barrier_phases_safe — Sentinel detect: 2.1× (17 ms vs 8 ms)</title></path>
+<path class="bar prevent" d="M190.0,449.0 H280.7 Q284.2,449.0 284.2,452.5 V452.5 Q284.2,456.0 280.7,456.0 H190.0 Z"><title>11_barrier_phases_safe — Sentinel prevent: 3.0× (24 ms vs 8 ms)</title></path>
+<path class="bar tsan" d="M190.0,458.0 H268.4 Q271.9,458.0 271.9,461.5 V461.5 Q271.9,465.0 268.4,465.0 H190.0 Z"><title>11_barrier_phases_safe — ThreadSanitizer: 2.6× (21 ms vs 8 ms)</title></path>
+<text class="label" x="180" y="493.5" text-anchor="end">12_linked_list_race</text>
+<path class="bar detect" d="M190.0,477.0 H440.0 Q443.5,477.0 443.5,480.5 V480.5 Q443.5,484.0 440.0,484.0 H190.0 Z"><title>12_linked_list_race — Sentinel detect: 19.2× (165 ms vs 9 ms)</title></path>
+<path class="bar prevent" d="M190.0,486.0 H437.1 Q440.6,486.0 440.6,489.5 V489.5 Q440.6,493.0 437.1,493.0 H190.0 Z"><title>12_linked_list_race — Sentinel prevent: 18.5× (159 ms vs 9 ms)</title></path>
+<path class="bar tsan" d="M190.0,495.0 H460.3 Q463.8,495.0 463.8,498.5 V498.5 Q463.8,502.0 460.3,502.0 H190.0 Z"><title>12_linked_list_race — ThreadSanitizer: 24.3× (209 ms vs 9 ms)</title></path>
+</svg>

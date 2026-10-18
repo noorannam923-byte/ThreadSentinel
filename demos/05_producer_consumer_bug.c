@@ -20,7 +20,10 @@
 #define ITEMS_COUNT 10000
 
 static int buffer[128];
-static int count = 0;
+/* volatile only stops -O2 from hoisting the consumer's unlocked read out of its spin
+ * loop in the uninstrumented builds (which hangs forever); it is not synchronisation,
+ * so the race on 'count' is still real and still reported. */
+static volatile int count = 0;
 static int head = 0;
 static int tail = 0;
 static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;

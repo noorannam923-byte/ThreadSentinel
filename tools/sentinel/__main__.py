@@ -72,11 +72,19 @@ def main() -> None:
                         help="Generate HTML report at this path")
 
     # --- bench ---
-    p_bench = sub.add_parser("bench", help="Run benchmark suite across all 12 demos")
+    p_bench = sub.add_parser("bench", help="Run the evaluation and regenerate docs/EVALUATION.md")
     p_bench.add_argument("--output", default="results/bench",
-                         help="Output directory for CSV/HTML results (default: results/bench)")
+                         help="Output directory for raw CSV/JSON results (default: results/bench)")
     p_bench.add_argument("--runs", type=int, default=5,
-                         help="Number of runs per configuration (default: 5)")
+                         help="Timed runs per configuration (default: 5)")
+    p_bench.add_argument("--trials", type=int, default=20,
+                         help="Trials per prevention configuration (default: 20)")
+    p_bench.add_argument("--only", default="",
+                         help="Comma-separated subset: accuracy,overhead,scalability,prevention")
+    p_bench.add_argument("--quick", action="store_true",
+                         help="Smoke-test settings (2 runs, 5 trials)")
+    p_bench.add_argument("--no-build", action="store_true",
+                         help="Skip `make all baseline bench-bins`")
 
     args = parser.parse_args()
 

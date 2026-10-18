@@ -5,7 +5,11 @@
  * - 4 worker threads execute in coordinated computation phases separated by a barrier.
  * - Phase 1: Each thread i computes and writes to array[i].
  * - Synchronization: All threads rendezvous at 'pthread_barrier_wait'.
- * - Phase 2: Each thread i reads array[(i + 1) % 4] (written by a different thread in Phase 1).
+ * - Phase 2: Each thread i reads array[(i + 1) % 4] (written by a different thread in Phase 1)
+ *   and then clears it.
+ *
+ * Expected Verdict (Pure Lockset): FALSE POSITIVE - two threads write each slot with no
+ * common lock; only the barrier orders them.
  *
  * Key Concept:
  * - POSIX barriers synchronize all participant threads simultaneously.
@@ -39,7 +43,10 @@ static void *phase_worker(void *arg) {
     /* Phase 2: Read neighboring slot written in Phase 1 */
     int neighbor_id = (id + 1) % NUM_THREADS;
     int neighbor_val = TS_READ(phase_data[neighbor_id]);
-    
+    /* Consume the slot: a lock-free write by a different thread than its Phase 1
+     * writer, ordered only by the barrier (Eraser flags it, the hybrid detector does not) */
+    TS_WRITE(phase_data[neighbor_id], 0);
+
     TS_WRITE(next_phase_data[id], neighbor_val + 5);
     
     return NULL;

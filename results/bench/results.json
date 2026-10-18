@@ -1,0 +1,512 @@
+{
+  "accuracy": {
+    "rows": [
+      {
+        "demo": "01_counter_race",
+        "racy": true,
+        "expected": {
+          "hybrid": "CONFIRMED",
+          "lockset": "CONFIRMED",
+          "hb": "CONFIRMED"
+        },
+        "hybrid": "CONFIRMED",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "CONFIRMED",
+        "hb_stable": true,
+        "tsan": "RACE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "02_counter_locked",
+        "racy": false,
+        "expected": {
+          "hybrid": "NONE",
+          "lockset": "NONE",
+          "hb": "NONE"
+        },
+        "hybrid": "NONE",
+        "hybrid_stable": true,
+        "lockset": "NONE",
+        "lockset_stable": true,
+        "hb": "NONE",
+        "hb_stable": true,
+        "tsan": "NONE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "03_bank_transfer",
+        "racy": true,
+        "expected": {
+          "hybrid": "CONFIRMED",
+          "lockset": "CONFIRMED",
+          "hb": "CONFIRMED"
+        },
+        "hybrid": "CONFIRMED",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "CONFIRMED",
+        "hb_stable": true,
+        "tsan": "RACE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "04_check_then_act",
+        "racy": true,
+        "expected": {
+          "hybrid": "CONFIRMED",
+          "lockset": "CONFIRMED",
+          "hb": "CONFIRMED"
+        },
+        "hybrid": "CONFIRMED",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "CONFIRMED",
+        "hb_stable": true,
+        "tsan": "RACE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "05_producer_consumer_bug",
+        "racy": true,
+        "expected": {
+          "hybrid": "CONFIRMED",
+          "lockset": "CONFIRMED",
+          "hb": "CONFIRMED"
+        },
+        "hybrid": "CONFIRMED",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "CONFIRMED",
+        "hb_stable": true,
+        "tsan": "RACE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "06_fork_join_safe",
+        "racy": false,
+        "expected": {
+          "hybrid": "NONE",
+          "lockset": "CONFIRMED",
+          "hb": "NONE"
+        },
+        "hybrid": "NONE",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "NONE",
+        "hb_stable": true,
+        "tsan": "NONE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "07_lucky_lock_order",
+        "racy": true,
+        "expected": {
+          "hybrid": "POTENTIAL",
+          "lockset": "CONFIRMED",
+          "hb": "NONE"
+        },
+        "hybrid": "POTENTIAL",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "NONE",
+        "hb_stable": true,
+        "tsan": "NONE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "08_condvar_handoff_safe",
+        "racy": false,
+        "expected": {
+          "hybrid": "NONE",
+          "lockset": "NONE",
+          "hb": "NONE"
+        },
+        "hybrid": "NONE",
+        "hybrid_stable": true,
+        "lockset": "NONE",
+        "lockset_stable": true,
+        "hb": "NONE",
+        "hb_stable": true,
+        "tsan": "NONE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "09_read_only_shared",
+        "racy": false,
+        "expected": {
+          "hybrid": "NONE",
+          "lockset": "NONE",
+          "hb": "NONE"
+        },
+        "hybrid": "NONE",
+        "hybrid_stable": true,
+        "lockset": "NONE",
+        "lockset_stable": true,
+        "hb": "NONE",
+        "hb_stable": true,
+        "tsan": "NONE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "10_mixed_locks",
+        "racy": true,
+        "expected": {
+          "hybrid": "CONFIRMED",
+          "lockset": "CONFIRMED",
+          "hb": "CONFIRMED"
+        },
+        "hybrid": "CONFIRMED",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "CONFIRMED",
+        "hb_stable": true,
+        "tsan": "RACE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "11_barrier_phases_safe",
+        "racy": false,
+        "expected": {
+          "hybrid": "NONE",
+          "lockset": "CONFIRMED",
+          "hb": "NONE"
+        },
+        "hybrid": "NONE",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "NONE",
+        "hb_stable": true,
+        "tsan": "NONE",
+        "tsan_stable": true
+      },
+      {
+        "demo": "12_linked_list_race",
+        "racy": true,
+        "expected": {
+          "hybrid": "CONFIRMED",
+          "lockset": "CONFIRMED",
+          "hb": "CONFIRMED"
+        },
+        "hybrid": "CONFIRMED",
+        "hybrid_stable": true,
+        "lockset": "CONFIRMED",
+        "lockset_stable": true,
+        "hb": "CONFIRMED",
+        "hb_stable": true,
+        "tsan": "RACE",
+        "tsan_stable": true
+      }
+    ],
+    "metrics": {
+      "hybrid": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 0,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 1.0,
+        "matches_expected": 12
+      },
+      "lockset": {
+        "tp": 7,
+        "fp": 2,
+        "fn": 0,
+        "tn": 3,
+        "precision": 0.7777777777777778,
+        "recall": 1.0,
+        "matches_expected": 12
+      },
+      "hb": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 1,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "matches_expected": 12
+      },
+      "tsan": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 1,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "matches_expected": 0
+      }
+    }
+  },
+  "overhead": [
+    {
+      "demo": "01_counter_race",
+      "plain_ms": 7.365231000051153,
+      "plain_sd": 0.6395606374896521,
+      "detect_ms": 3458.5646859999883,
+      "detect_sd": 166.63218368063522,
+      "prevent_ms": 2925.8981909999875,
+      "prevent_sd": 170.39495316959776,
+      "tsan_ms": 165.54820300001438,
+      "tsan_sd": 5.7454944773176315,
+      "detect_x": 469.57993387796904,
+      "prevent_x": 397.2581703112457,
+      "tsan_x": 22.47698721178801
+    },
+    {
+      "demo": "02_counter_locked",
+      "plain_ms": 249.42326799998682,
+      "plain_sd": 10.179737484118853,
+      "detect_ms": 4599.296076999963,
+      "detect_sd": 153.0517811457901,
+      "prevent_ms": 4821.9185919999745,
+      "prevent_sd": 205.43715681490409,
+      "tsan_ms": 3256.634711999993,
+      "tsan_sd": 152.48629380097256,
+      "detect_x": 18.43972342227593,
+      "prevent_x": 19.33227252880124,
+      "tsan_x": 13.056659621668357
+    },
+    {
+      "demo": "03_bank_transfer",
+      "plain_ms": 19.172523000008823,
+      "plain_sd": 4.102192948618556,
+      "detect_ms": 613.8755839999703,
+      "detect_sd": 54.48430449849599,
+      "prevent_ms": 571.1214290000157,
+      "prevent_sd": 24.366919932758094,
+      "tsan_ms": 3580.762777000018,
+      "tsan_sd": 812.8194331104055,
+      "detect_x": 32.018508153553285,
+      "prevent_x": 29.788537950886948,
+      "tsan_x": 186.7653400128074
+    },
+    {
+      "demo": "04_check_then_act",
+      "plain_ms": 4.948672000011811,
+      "plain_sd": 0.8799321687073789,
+      "detect_ms": 13.315447999957541,
+      "detect_sd": 0.4794683802822525,
+      "prevent_ms": 18.08968199998162,
+      "prevent_sd": 0.9858943975229443,
+      "tsan_ms": 167.16047799997114,
+      "tsan_sd": 4.2905452695970405,
+      "detect_x": 2.6907113665900186,
+      "prevent_x": 3.65546190976861,
+      "tsan_x": 33.77885582224325
+    },
+    {
+      "demo": "05_producer_consumer_bug",
+      "plain_ms": 8.67611600000373,
+      "plain_sd": 1.3988045431045295,
+      "detect_ms": 46.44589700001234,
+      "detect_sd": 2.932983741967707,
+      "prevent_ms": 48.41473300001553,
+      "prevent_sd": 3.0871557922467177,
+      "tsan_ms": 204.99171299996988,
+      "tsan_sd": 12.34511843547622,
+      "detect_x": 5.353305211686009,
+      "prevent_x": 5.580231177175906,
+      "tsan_x": 23.627129120897155
+    },
+    {
+      "demo": "06_fork_join_safe",
+      "plain_ms": 7.570760000021437,
+      "plain_sd": 0.9336079490385749,
+      "detect_ms": 26.040847999979633,
+      "detect_sd": 4.726400995988967,
+      "prevent_ms": 28.558314999997947,
+      "prevent_sd": 4.239915918379294,
+      "tsan_ms": 31.232617999989998,
+      "tsan_sd": 5.445990292433763,
+      "detect_x": 3.4396610115636865,
+      "prevent_x": 3.7721860156598654,
+      "tsan_x": 4.125427037695233
+    },
+    {
+      "demo": "07_lucky_lock_order",
+      "plain_ms": 19.76147700003139,
+      "plain_sd": 1.2325583266006745,
+      "detect_ms": 38.5149499999784,
+      "detect_sd": 3.2552726316325162,
+      "prevent_ms": 45.540444000039315,
+      "prevent_sd": 4.494992332927904,
+      "tsan_ms": 39.889821999963715,
+      "tsan_sd": 1.7843197556212862,
+      "detect_x": 1.9489914645508135,
+      "prevent_x": 2.304506085246916,
+      "tsan_x": 2.0185648066640134
+    },
+    {
+      "demo": "08_condvar_handoff_safe",
+      "plain_ms": 11.621673000036026,
+      "plain_sd": 1.8000329603807494,
+      "detect_ms": 25.421996999966723,
+      "detect_sd": 1.833881476851879,
+      "prevent_ms": 27.599949999967066,
+      "prevent_sd": 1.2847533018605874,
+      "tsan_ms": 28.9077920000409,
+      "tsan_sd": 2.5159322662406116,
+      "detect_x": 2.187464489827576,
+      "prevent_x": 2.374868919464651,
+      "tsan_x": 2.487403663822867
+    },
+    {
+      "demo": "09_read_only_shared",
+      "plain_ms": 11.664482000014686,
+      "plain_sd": 2.007701324422606,
+      "detect_ms": 540.5863440000189,
+      "detect_sd": 37.94894597285522,
+      "prevent_ms": 479.9991220000379,
+      "prevent_sd": 22.516132975920183,
+      "tsan_ms": 25.638869000033537,
+      "tsan_sd": 4.096243492319976,
+      "detect_x": 46.34465070967903,
+      "prevent_x": 41.150487608402464,
+      "tsan_x": 2.1980289394763743
+    },
+    {
+      "demo": "10_mixed_locks",
+      "plain_ms": 35.683674999972936,
+      "plain_sd": 3.99949996171641,
+      "detect_ms": 825.9474529999693,
+      "detect_sd": 69.17837958231235,
+      "prevent_ms": 556.519972999979,
+      "prevent_sd": 29.557011068373036,
+      "tsan_ms": 5198.343181999973,
+      "tsan_sd": 603.8682586891068,
+      "detect_x": 23.146367435545688,
+      "prevent_x": 15.595926512625201,
+      "tsan_x": 145.67847011284337
+    },
+    {
+      "demo": "11_barrier_phases_safe",
+      "plain_ms": 8.07299799998873,
+      "plain_sd": 1.2288256645755724,
+      "detect_ms": 16.994401999966158,
+      "detect_sd": 2.252416032610734,
+      "prevent_ms": 24.192815999981576,
+      "prevent_sd": 1.03230785382649,
+      "tsan_ms": 20.974773999967056,
+      "tsan_sd": 2.3062015406972107,
+      "detect_x": 2.105091813473741,
+      "prevent_x": 2.996757338477645,
+      "tsan_x": 2.5981393777127577
+    },
+    {
+      "demo": "12_linked_list_race",
+      "plain_ms": 8.595770999988872,
+      "plain_sd": 1.5109069218532722,
+      "detect_ms": 164.76241300000538,
+      "detect_sd": 8.205244038522684,
+      "prevent_ms": 159.32383599999866,
+      "prevent_sd": 18.241136641605205,
+      "tsan_ms": 208.7821609999878,
+      "tsan_sd": 2.3970575468414843,
+      "detect_x": 19.167845793032257,
+      "prevent_x": 18.53514199019552,
+      "tsan_x": 24.28893940988634
+    }
+  ],
+  "scalability": [
+    {
+      "threads": 2,
+      "plain_ms": 19.744054999989658,
+      "detect_ms": 611.0283499999696,
+      "tsan_ms": 137.75671899998088
+    },
+    {
+      "threads": 4,
+      "plain_ms": 25.03660000002128,
+      "detect_ms": 1542.2299049999992,
+      "tsan_ms": 264.4337670000141
+    },
+    {
+      "threads": 8,
+      "plain_ms": 40.850492000004124,
+      "detect_ms": 3465.553994000004,
+      "tsan_ms": 784.0085880000061
+    },
+    {
+      "threads": 16,
+      "plain_ms": 102.13244599998461,
+      "detect_ms": 6521.030149000012,
+      "tsan_ms": 1350.8438829999818
+    }
+  ],
+  "prevention": [
+    {
+      "demo": "01_counter_race",
+      "trials": 20,
+      "plain_buggy": 0,
+      "detect_buggy": 20,
+      "prevent_file_buggy": 0,
+      "prevent_file_confirmed_runs": 0,
+      "prevent_live_buggy": 0,
+      "prevent_live_confirmed_runs": 20,
+      "elimination": null
+    },
+    {
+      "demo": "03_bank_transfer",
+      "trials": 20,
+      "plain_buggy": 20,
+      "detect_buggy": 19,
+      "prevent_file_buggy": 0,
+      "prevent_file_confirmed_runs": 0,
+      "prevent_live_buggy": 0,
+      "prevent_live_confirmed_runs": 20,
+      "elimination": 1.0
+    },
+    {
+      "demo": "04_check_then_act",
+      "trials": 20,
+      "plain_buggy": 20,
+      "detect_buggy": 20,
+      "prevent_file_buggy": 0,
+      "prevent_file_confirmed_runs": 0,
+      "prevent_live_buggy": 20,
+      "prevent_live_confirmed_runs": 20,
+      "elimination": 1.0
+    },
+    {
+      "demo": "05_producer_consumer_bug",
+      "trials": 20,
+      "plain_buggy": 0,
+      "detect_buggy": 0,
+      "prevent_file_buggy": 0,
+      "prevent_file_confirmed_runs": 0,
+      "prevent_live_buggy": 0,
+      "prevent_live_confirmed_runs": 20,
+      "elimination": null
+    },
+    {
+      "demo": "10_mixed_locks",
+      "trials": 20,
+      "plain_buggy": 20,
+      "detect_buggy": 20,
+      "prevent_file_buggy": 0,
+      "prevent_file_confirmed_runs": 0,
+      "prevent_live_buggy": 0,
+      "prevent_live_confirmed_runs": 20,
+      "elimination": 1.0
+    },
+    {
+      "demo": "12_linked_list_race",
+      "trials": 20,
+      "plain_buggy": 20,
+      "detect_buggy": 20,
+      "prevent_file_buggy": 0,
+      "prevent_file_confirmed_runs": 0,
+      "prevent_live_buggy": 14,
+      "prevent_live_confirmed_runs": 20,
+      "elimination": 1.0
+    }
+  ]
+}

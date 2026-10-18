@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="760" height="400" role="img" aria-label="Wall time by thread count">
+<style>
+  svg { --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --grid:#e4e3df;
+        --s-detect:#2a78d6; --s-prevent:#eb6834; --s-tsan:#1baf7a; --s-plain:#eda100; }
+  @media (prefers-color-scheme: dark) {
+    svg { --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --grid:#3a3a37;
+          --s-detect:#3987e5; --s-prevent:#d95926; --s-tsan:#199e70; --s-plain:#c98500; }
+  }
+  .bg { fill: var(--surface); }
+  text { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; fill: var(--ink2); font-size: 12px; }
+  .title { fill: var(--ink); font-size: 15px; font-weight: 600; }
+  .label { fill: var(--ink); }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .detect { fill: var(--s-detect); stroke: var(--s-detect); }
+  .prevent { fill: var(--s-prevent); stroke: var(--s-prevent); }
+  .tsan { fill: var(--s-tsan); stroke: var(--s-tsan); }
+  .plain { fill: var(--s-plain); stroke: var(--s-plain); }
+  rect.bar, path.bar { stroke: none; }
+  path.line { fill: none; stroke-width: 2; }
+  circle.dot { stroke: var(--surface); stroke-width: 2; }
+</style>
+<rect class="bg" width="760" height="400"/>
+<text class="title" x="16" y="26">Wall time by thread count (200,000 iterations/thread, ms, log scale)</text>
+<rect class="plain" x="16.0" y="41.0" width="10" height="10" rx="2"/><text x="31.0" y="50.0">Plain (no instrumentation)</text><rect class="detect" x="220.0" y="41.0" width="10" height="10" rx="2"/><text x="235.0" y="50.0">Sentinel detect</text><rect class="tsan" x="347.0" y="41.0" width="10" height="10" rx="2"/><text x="362.0" y="50.0">ThreadSanitizer</text>
+<line class="grid" x1="70" x2="610" y1="339.4" y2="339.4"/><text x="62" y="343.4" text-anchor="end">20</text>
+<line class="grid" x1="70" x2="610" y1="298.3" y2="298.3"/><text x="62" y="302.3" text-anchor="end">50</text>
+<line class="grid" x1="70" x2="610" y1="267.3" y2="267.3"/><text x="62" y="271.3" text-anchor="end">100</text>
+<line class="grid" x1="70" x2="610" y1="236.2" y2="236.2"/><text x="62" y="240.2" text-anchor="end">200</text>
+<line class="grid" x1="70" x2="610" y1="195.1" y2="195.1"/><text x="62" y="199.1" text-anchor="end">500</text>
+<line class="grid" x1="70" x2="610" y1="164.1" y2="164.1"/><text x="62" y="168.1" text-anchor="end">1000</text>
+<line class="grid" x1="70" x2="610" y1="133.0" y2="133.0"/><text x="62" y="137.0" text-anchor="end">2000</text>
+<line class="grid" x1="70" x2="610" y1="91.9" y2="91.9"/><text x="62" y="95.9" text-anchor="end">5000</text>
+<text x="70.0" y="370" text-anchor="middle">2</text>
+<text x="250.0" y="370" text-anchor="middle">4</text>
+<text x="430.0" y="370" text-anchor="middle">8</text>
+<text x="610.0" y="370" text-anchor="middle">16</text>
+<text x="340.0" y="388" text-anchor="middle">threads</text>
+<path class="line plain" d="M70.0,340.0 L250.0,329.4 L430.0,307.4 L610.0,266.3"/>
+<circle class="dot plain" cx="70.0" cy="340.0" r="4.5"><title>Plain (no instrumentation), 2 threads: 20 ms</title></circle>
+<circle class="dot plain" cx="250.0" cy="329.4" r="4.5"><title>Plain (no instrumentation), 4 threads: 25 ms</title></circle>
+<circle class="dot plain" cx="430.0" cy="307.4" r="4.5"><title>Plain (no instrumentation), 8 threads: 41 ms</title></circle>
+<circle class="dot plain" cx="610.0" cy="266.3" r="4.5"><title>Plain (no instrumentation), 16 threads: 102 ms</title></circle>
+<text class="label" x="620.0" y="270.3">Plain</text>
+<path class="line detect" d="M70.0,186.1 L250.0,144.6 L430.0,108.3 L610.0,80.0"/>
+<circle class="dot detect" cx="70.0" cy="186.1" r="4.5"><title>Sentinel detect, 2 threads: 611 ms</title></circle>
+<circle class="dot detect" cx="250.0" cy="144.6" r="4.5"><title>Sentinel detect, 4 threads: 1542 ms</title></circle>
+<circle class="dot detect" cx="430.0" cy="108.3" r="4.5"><title>Sentinel detect, 8 threads: 3466 ms</title></circle>
+<circle class="dot detect" cx="610.0" cy="80.0" r="4.5"><title>Sentinel detect, 16 threads: 6521 ms</title></circle>
+<text class="label" x="620.0" y="84.0">Sentinel detect</text>
+<path class="line tsan" d="M70.0,252.9 L250.0,223.7 L430.0,175.0 L610.0,150.6"/>
+<circle class="dot tsan" cx="70.0" cy="252.9" r="4.5"><title>ThreadSanitizer, 2 threads: 138 ms</title></circle>
+<circle class="dot tsan" cx="250.0" cy="223.7" r="4.5"><title>ThreadSanitizer, 4 threads: 264 ms</title></circle>
+<circle class="dot tsan" cx="430.0" cy="175.0" r="4.5"><title>ThreadSanitizer, 8 threads: 784 ms</title></circle>
+<circle class="dot tsan" cx="610.0" cy="150.6" r="4.5"><title>ThreadSanitizer, 16 threads: 1351 ms</title></circle>
+<text class="label" x="620.0" y="154.6">ThreadSanitizer</text>
+</svg>

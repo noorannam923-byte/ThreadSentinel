@@ -60,13 +60,13 @@
   - [x] Standalone HTML report generator with inlined Plotly.js in `tools/sentinel/report_html.py`
   - [x] Verify `replay` outputs `MATCH` for all demo traces (`tests/integration/test_replay.py`, hybrid + hb, exact race-set equality)
 
-- [ ] **Phase 8: Evaluation & benchmarks**
-  - [ ] Benchmark runner `tools/sentinel/bench.py` and `make bench`
-  - [ ] Accuracy comparison: Sentinel (Hybrid, Lockset, HB) vs ThreadSanitizer (TSan) across 12 demos
-  - [ ] Performance overhead: uninstrumented vs Sentinel detect vs Sentinel prevent vs TSan
-  - [ ] Scalability benchmark: thread count scaling (2, 4, 8, 16 threads)
-  - [ ] Prevention effectiveness: 20-run trials measuring bug elimination rate
-  - [ ] Populate `docs/EVALUATION.md` with real benchmark tables and charts
+- [x] **Phase 8: Evaluation & benchmarks**
+  - [x] Benchmark runner `tools/sentinel/bench_cmd.py` and `make bench` (`--only`, `--quick`, `--runs`, `--trials`)
+  - [x] Accuracy comparison: Sentinel (Hybrid, Lockset, HB) vs ThreadSanitizer (TSan) across 12 demos
+  - [x] Performance overhead: uninstrumented vs Sentinel detect vs Sentinel prevent vs TSan
+  - [x] Scalability benchmark: thread count scaling (2, 4, 8, 16 threads) via `bench/scale_counter.c`
+  - [x] Prevention effectiveness: 20-run trials measuring bug elimination rate
+  - [x] Populate `docs/EVALUATION.md` with real benchmark tables and charts (`docs/img/*.svg`)
 
 - [ ] **Phase 9: Documentation & viva preparation**
   - [ ] `README.md` (overview, architecture diagram, quick start, usage)
@@ -104,5 +104,16 @@
   omits accesses that provably cannot produce a race (same-thread run after that thread's write,
   flushing the final records when another thread arrives / on free / at exit; identical re-reads),
   and lock/unlock pairs re-acquired by the previous holder. Demo 01 is now ~44 MB / 300k events.
+- **Demos 06 and 11 strengthened for the lockset showcase.** Their expected files said pure lockset
+  reports a false positive, but it never did (untested: test_demos only checked hybrid). Eraser's
+  EXCLUSIVE→SHARED rule correctly tolerates "write once, then others only read". 06 now has main
+  zero `output_data` before fork, and 11 has each thread clear its neighbour's slot after the
+  barrier, giving a real lock-free cross-thread write handoff. Lockset now flags both, and hybrid/HB
+  still report SAFE. `test_demos.py` now checks the lockset and HB verdicts too.
+- **Demo 05 `count` is `volatile`.** In the `-DTS_DISABLE` builds `-O2` could hoist the consumer's
+  unlocked read out of its spin loop and hang forever (seen under TSan). `volatile` prevents the
+  hoist without synchronising, so the race is still real and still reported.
+- **TSan runs under `setarch -R`.** gcc 13 TSan aborts on this kernel's 32-bit mmap randomisation.
+- **`make bench`/`demo-all` set `PYTHONPATH=tools`**; previously `python -m sentinel` could not be found.
 - **`sentinel run` arguments.** Binary arguments go after `--` (previously every flag after the
   binary path, including `--report`, was silently passed to the binary).
