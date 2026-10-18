@@ -68,14 +68,14 @@
   - [x] Prevention effectiveness: 20-run trials measuring bug elimination rate
   - [x] Populate `docs/EVALUATION.md` with real benchmark tables and charts (`docs/img/*.svg`)
 
-- [ ] **Phase 9: Documentation & viva preparation**
-  - [ ] `README.md` (overview, architecture diagram, quick start, usage)
-  - [ ] `docs/ARCHITECTURE.md` (subsystems, data flows, invariants)
-  - [ ] `docs/ALGORITHMS.md` (formal rules, step-by-step worked trace example)
-  - [ ] `docs/VIVA_QA.md` (25+ viva questions with concise answers)
-  - [ ] `docs/REPORT_OUTLINE.md` (academic project report outline)
-  - [ ] Valgrind memory leak verification (`make valgrind`)
-  - [ ] Optional GitHub Actions CI workflow
+- [x] **Phase 9: Documentation & viva preparation**
+  - [x] `README.md` (overview, architecture diagram, quick start, usage)
+  - [x] `docs/ARCHITECTURE.md` (subsystems, data flows, invariants)
+  - [x] `docs/ALGORITHMS.md` (formal rules, step-by-step worked trace example)
+  - [x] `docs/VIVA_QA.md` (25+ viva questions with concise answers) — 30 questions
+  - [x] `docs/REPORT_OUTLINE.md` (academic project report outline)
+  - [x] Valgrind memory leak verification (`make valgrind` → `tools/valgrind_all.sh`, all 12 demos clean)
+  - [x] Optional GitHub Actions CI workflow (`.github/workflows/ci.yml`; not yet run, as there is no remote)
 
 - [ ] **Phase 10: Stretch features**
   - [ ] Potential deadlock detection (lock-order acquisition graph cycle detection)
@@ -115,5 +115,9 @@
   hoist without synchronising, so the race is still real and still reported.
 - **TSan runs under `setarch -R`.** gcc 13 TSan aborts on this kernel's 32-bit mmap randomisation.
 - **`make bench`/`demo-all` set `PYTHONPATH=tools`**; previously `python -m sentinel` could not be found.
+- **`make valgrind` checks all demos in two passes.** A single detect-mode run of 12 reports the
+  demo's own race-induced leak (the race orphans a chain of nodes). Pass 1 runs prevent mode with a
+  protect file and full leak checking, so any leak is the runtime's. Pass 2 runs detect mode with
+  memory errors fatal and leaks not counted.
 - **`sentinel run` arguments.** Binary arguments go after `--` (previously every flag after the
   binary path, including `--report`, was silently passed to the binary).

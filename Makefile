@@ -127,7 +127,7 @@ bench: all baseline bench-bins
 	fi
 
 valgrind: all
-	valgrind --leak-check=full --error-exitcode=1 $(DEMOS_BIN)/01_counter_race
+	bash tools/valgrind_all.sh
 
 clean:
 	rm -rf $(BUILD_DIR) $(DEMOS_BIN) $(TESTS_BIN) $(BENCH_BIN) $(STATIC_LIB) $(SHARED_LIB) ts_report.json

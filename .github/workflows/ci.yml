@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python environment
+        run: make setup PYTHON=python
+
+      - name: Build (zero warnings, -Werror)
+        run: make all baseline bench-bins
+
+      - name: Unit and integration tests
+        run: make test
+
+  valgrind:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install valgrind
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+
+      - name: Build
+        run: make all
+
+      - name: Memcheck every demo
+        run: make valgrind
