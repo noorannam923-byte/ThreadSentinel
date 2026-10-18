@@ -19,7 +19,7 @@ void prevention_unlock_stripe(int stripe);
 void prevention_lock_guard_for_addr(const void *addr);
 void prevention_unlock_guard_for_addr(const void *addr);
 
-void prevention_region_begin(int n, void *addrs[]);
+void prevention_region_begin(int n, void *addrs[], const char *names[]);
 void prevention_region_end(void);
 
 void prevention_write_protected_json(FILE *fp);

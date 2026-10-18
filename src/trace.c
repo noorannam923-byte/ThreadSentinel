@@ -13,6 +13,8 @@ void trace_init(const char *trace_path) {
         g_trace_fp = fopen(trace_path, "w");
         if (!g_trace_fp) {
             fprintf(stderr, "[ThreadSentinel WARNING] Failed to open trace file: %s\n", trace_path);
+        } else {
+            setvbuf(g_trace_fp, NULL, _IOFBF, 1 << 20);
         }
     }
     g_trace_seq = 0;
@@ -25,6 +27,10 @@ void trace_shutdown(void) {
         fclose(g_trace_fp);
         g_trace_fp = NULL;
     }
+}
+
+bool trace_is_enabled(void) {
+    return g_trace_fp != NULL;
 }
 
 void trace_record_event(uint32_t tid, const char *ev, const void *obj, int lock_id,

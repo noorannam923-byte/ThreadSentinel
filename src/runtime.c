@@ -109,6 +109,7 @@ void ts_runtime_shutdown(void) {
     
     ts_lock_runtime();
     report_flush_and_close();
+    detector_flush_trace();
     trace_shutdown();
     prevention_shutdown();
     detector_shutdown();
@@ -118,9 +119,9 @@ void ts_runtime_shutdown(void) {
     ts_unlock_runtime();
 }
 
-void *ts_read_pre(const void *addr) {
+void *ts_read_pre(const void *addr, const char *var_name) {
     if (!g_ts_initialized) ts_runtime_init();
-    if (g_ts_config.mode == TS_MODE_PREVENT && prevention_is_protected(addr, NULL, NULL)) {
+    if (g_ts_config.mode == TS_MODE_PREVENT && prevention_is_protected(addr, var_name, NULL)) {
         prevention_lock_guard_for_addr(addr);
     }
     return (void *)addr;
@@ -139,9 +140,9 @@ void ts_read_post(const void *addr, const char *var_name, const char *file, int 
     }
 }
 
-void *ts_write_pre(const void *addr) {
+void *ts_write_pre(const void *addr, const char *var_name) {
     if (!g_ts_initialized) ts_runtime_init();
-    if (g_ts_config.mode == TS_MODE_PREVENT && prevention_is_protected(addr, NULL, NULL)) {
+    if (g_ts_config.mode == TS_MODE_PREVENT && prevention_is_protected(addr, var_name, NULL)) {
         prevention_lock_guard_for_addr(addr);
     }
     return (void *)addr;
@@ -160,9 +161,9 @@ void ts_write_post(const void *addr, const char *var_name, const char *file, int
     }
 }
 
-void *ts_update_pre(const void *addr) {
+void *ts_update_pre(const void *addr, const char *var_name) {
     if (!g_ts_initialized) ts_runtime_init();
-    if (g_ts_config.mode == TS_MODE_PREVENT && prevention_is_protected(addr, NULL, NULL)) {
+    if (g_ts_config.mode == TS_MODE_PREVENT && prevention_is_protected(addr, var_name, NULL)) {
         prevention_lock_guard_for_addr(addr);
     }
     return (void *)addr;
@@ -181,19 +182,42 @@ void ts_update_post(const void *addr, const char *var_name, const char *file, in
     }
 }
 
-void ts_region_begin(int n, ...) {
+/* Split the stringified TS_REGION_BEGIN arguments ("&a, &b") into bare variable
+ * names ("a", "b") so protect-file entries can be matched by name. */
+static void split_region_names(const char *names_str, int count, char buf[][64], const char *names[]) {
+    const char *p = names_str ? names_str : "";
+    for (int i = 0; i < count; i++) {
+        while (*p == ' ' || *p == '&' || *p == '(') p++;
+        size_t len = 0;
+        while (p[len] && p[len] != ',') len++;
+        size_t end = len;
+        while (end > 0 && (p[end - 1] == ' ' || p[end - 1] == ')')) end--;
+        if (end >= 64) end = 63;
+        memcpy(buf[i], p, end);
+        buf[i][end] = '\0';
+        names[i] = buf[i];
+        p += len;
+        if (*p == ',') p++;
+    }
+}
+
+void ts_region_begin(int n, const char *names_str, ...) {
+    if (!g_ts_initialized) ts_runtime_init();
     if (n <= 0) return;
     void *addrs[16];
+    char name_buf[16][64];
+    const char *names[16];
     int count = (n > 16) ? 16 : n;
-    
+
     va_list ap;
-    va_start(ap, n);
+    va_start(ap, names_str);
     for (int i = 0; i < count; i++) {
         addrs[i] = va_arg(ap, void *);
     }
     va_end(ap);
-    
-    prevention_region_begin(count, addrs);
+
+    split_region_names(names_str, count, name_buf, names);
+    prevention_region_begin(count, addrs, names);
 }
 
 void ts_region_end(void) {
@@ -204,6 +228,8 @@ void ts_free(void *ptr, size_t size) {
     (void)size;
     if (!ptr) return;
     ts_lock_runtime();
+    ts_shadow_entry_t *entry = shadow_lookup(ptr);
+    if (entry) detector_flush_trace_entry(entry);
     shadow_free_entry(ptr);
     ts_unlock_runtime();
     free(ptr);

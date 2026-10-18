@@ -34,9 +34,12 @@ static void *list_worker(void *arg) {
         node_t *new_node = (node_t *)malloc(sizeof(node_t));
         new_node->val = (int)(id * 100000 + i);
         
-        /* Bug: Unsynchronized read and write to list_head */
+        /* Bug: Unsynchronized read and write to list_head.
+         * The region (no-op in detect mode) makes the push atomic in prevent mode. */
+        TS_REGION_BEGIN(1, &list_head);
         new_node->next = TS_READ(list_head);
         TS_WRITE(list_head, new_node);
+        TS_REGION_END();
     }
     return NULL;
 }

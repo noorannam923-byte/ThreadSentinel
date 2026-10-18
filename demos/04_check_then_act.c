@@ -26,13 +26,17 @@ static int init_count = 0;
 static void *init_worker(void *arg) {
     (void)arg;
     
-    /* Bug: Unsynchronized check-then-act */
+    /* Bug: Unsynchronized check-then-act.
+     * The region is a no-op in detect mode; in prevent mode it makes the whole
+     * check-then-act atomic, which per-access guards alone cannot do. */
+    TS_REGION_BEGIN(2, &initialized, &init_count);
     if (!TS_READ(initialized)) {
         usleep(500); /* Small window widening the race */
         TS_UPDATE(init_count, += 1);
         TS_WRITE(initialized, 1);
     }
-    
+    TS_REGION_END();
+
     return NULL;
 }
 

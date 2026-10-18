@@ -7,6 +7,7 @@
 
 void trace_init(const char *trace_path);
 void trace_shutdown(void);
+bool trace_is_enabled(void);
 void trace_record_event(uint32_t tid, const char *ev, const void *obj, int lock_id,
                         const char *var, const char *loc, uint64_t locks_held,
                         const vector_clock_t *hb, const vector_clock_t *st);

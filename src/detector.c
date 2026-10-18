@@ -16,6 +16,34 @@ void detector_init(void) {
 void detector_shutdown(void) {
 }
 
+/*
+ * Trace compaction. Once thread t has written an address and no other thread has
+ * touched it since, last_write is t's own and no other thread's reads remain, so every
+ * further access by t is checked only against t's own records and cannot report a
+ * race. Those accesses are not written as they happen; the entry's final records are
+ * written when another thread arrives (or at free / shutdown). The replayed result is
+ * identical, but a long same-thread run costs at most two trace lines.
+ */
+static void trace_emit_record(const ts_shadow_entry_t *entry, const ts_access_record_t *rec, bool is_write) {
+    trace_record_event(rec->tid, is_write ? "write" : "read", (const void *)entry->addr, -1,
+                       entry->var_name, rec->loc, rec->lockset, &rec->hb_clock, &rec->st_clock);
+}
+
+void detector_flush_trace_entry(ts_shadow_entry_t *entry) {
+    if (entry->trace_pending_write) {
+        trace_emit_record(entry, &entry->last_write, true);
+    }
+    if (entry->trace_pending_read) {
+        trace_emit_record(entry, &entry->last_reads[entry->trace_run_tid], false);
+    }
+    entry->trace_pending_write = false;
+    entry->trace_pending_read = false;
+}
+
+void detector_flush_trace(void) {
+    if (trace_is_enabled()) shadow_for_each(detector_flush_trace_entry);
+}
+
 static void evaluate_conflict(ts_shadow_entry_t *entry,
                               const ts_access_record_t *p,
                               const char *p_op,
@@ -96,10 +124,48 @@ void detector_process_access(const void *addr, const char *var_name, const char 
     /* Update Eraser state machine */
     lockset_update(&entry->eraser, tid, is_write, held_locks);
     
-    trace_record_event(tid, is_write ? "write" : "read", addr, -1,
-                       var_name, loc, held_locks, &tinfo->hb_clock, &tinfo->st_clock);
+    /* Compaction relies on the shadow records being updated below, so only in detect mode */
+    bool compactable = trace_is_enabled() &&
+                       g_ts_config.mode == TS_MODE_DETECT &&
+                       g_ts_config.detector != TS_DETECTOR_LOCKSET;
+    bool same_run = compactable && entry->trace_run_valid && entry->trace_run_tid == tid;
+    const ts_access_record_t *own_read = &entry->last_reads[tid];
+    /* A re-read with the same epochs, locks and location can only re-find races already
+     * reported (same location pair), and leaves an identical record behind. */
+    bool repeat_read = same_run && !is_write && own_read->valid &&
+                       own_read->hb_epoch == tinfo->hb_clock.clock[tid] &&
+                       own_read->st_epoch == tinfo->st_clock.clock[tid] &&
+                       own_read->lockset == held_locks &&
+                       strcmp(own_read->loc, loc) == 0;
+    if (same_run && entry->trace_run_written) {
+        if (is_write) {
+            entry->trace_pending_write = true;
+            entry->trace_pending_read = false; /* the write clears the reads */
+        } else {
+            entry->trace_pending_read = true;
+        }
+    } else if (repeat_read) {
+        /* already traced */
+    } else {
+        detector_flush_trace_entry(entry);
+        if (!entry->trace_run_valid || entry->trace_run_tid != tid) {
+            entry->trace_run_valid = true;
+            entry->trace_run_tid = tid;
+            entry->trace_run_written = false;
+        }
+        trace_record_event(tid, is_write ? "write" : "read", addr, -1,
+                           var_name, loc, held_locks, &tinfo->hb_clock, &tinfo->st_clock);
+    }
+    if (is_write) entry->trace_run_written = true;
                        
     if (g_ts_config.mode == TS_MODE_OFF) return;
+    
+    /* In prevent mode, protected addresses cannot race (guard lock serialises them).
+     * Skip detection to avoid false positives in the report. */
+    if (g_ts_config.mode == TS_MODE_PREVENT &&
+        prevention_is_protected(addr, var_name, NULL)) {
+        return;
+    }
     
     /* Check pure lockset mode */
     if (g_ts_config.detector == TS_DETECTOR_LOCKSET) {

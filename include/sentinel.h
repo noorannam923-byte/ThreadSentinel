@@ -29,16 +29,16 @@ extern "C" {
 #endif
 
 /* Runtime hook functions called by instrumentation macros */
-void *ts_read_pre(const void *addr);
+void *ts_read_pre(const void *addr, const char *var_name);
 void  ts_read_post(const void *addr, const char *var_name, const char *file, int line);
 
-void *ts_write_pre(const void *addr);
+void *ts_write_pre(const void *addr, const char *var_name);
 void  ts_write_post(const void *addr, const char *var_name, const char *file, int line);
 
-void *ts_update_pre(const void *addr);
+void *ts_update_pre(const void *addr, const char *var_name);
 void  ts_update_post(const void *addr, const char *var_name, const char *file, int line);
 
-void  ts_region_begin(int n, ...);
+void  ts_region_begin(int n, const char *names_str, ...);
 void  ts_region_end(void);
 void  ts_free(void *ptr, size_t size);
 
@@ -60,25 +60,25 @@ int ts_barrier_wait(pthread_barrier_t *barrier);
 
 /* Instrumentation macros */
 #define TS_READ(x) ({ \
-    ts_read_pre((const void *)&(x)); \
+    ts_read_pre((const void *)&(x), #x); \
     __typeof__(x) _ts_read_val = (x); \
     ts_read_post((const void *)&(x), #x, __FILE__, __LINE__); \
     _ts_read_val; \
 })
 
 #define TS_WRITE(x, val) do { \
-    ts_write_pre((const void *)&(x)); \
+    ts_write_pre((const void *)&(x), #x); \
     (x) = (val); \
     ts_write_post((const void *)&(x), #x, __FILE__, __LINE__); \
 } while (0)
 
 #define TS_UPDATE(x, op) do { \
-    ts_update_pre((const void *)&(x)); \
+    ts_update_pre((const void *)&(x), #x); \
     (x) op; \
     ts_update_post((const void *)&(x), #x, __FILE__, __LINE__); \
 } while (0)
 
-#define TS_REGION_BEGIN(n, ...) ts_region_begin((n), __VA_ARGS__)
+#define TS_REGION_BEGIN(n, ...) ts_region_begin((n), #__VA_ARGS__, __VA_ARGS__)
 #define TS_REGION_END()         ts_region_end()
 #define TS_FREE(ptr, size)      ts_free((ptr), (size))
 

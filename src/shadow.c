@@ -81,6 +81,14 @@ ts_shadow_entry_t *shadow_lookup(const void *addr) {
     return NULL;
 }
 
+void shadow_for_each(void (*fn)(ts_shadow_entry_t *entry)) {
+    for (uint32_t i = 0; i < SHADOW_BUCKETS; i++) {
+        for (ts_shadow_entry_t *cur = g_shadow_table[i]; cur; cur = cur->next) {
+            fn(cur);
+        }
+    }
+}
+
 void shadow_free_entry(const void *addr) {
     uintptr_t uaddr = (uintptr_t)addr;
     uint32_t bucket = hash_address(uaddr);

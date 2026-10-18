@@ -46,19 +46,19 @@
   - [x] Ground truth JSON files in `demos/expected/`
   - [x] Pytest suite in `tests/integration/test_demos.py`
 
-- [ ] **Phase 6: Prevention runtime**
-  - [ ] `src/prevention.c` & `src/prevention.h` (striped guard locks, protected address/symbol set)
-  - [ ] Dynamic live protection on first race detection
-  - [ ] Pre-execution protection via `TS_PROTECT_FILE`
-  - [ ] `TS_REGION_BEGIN(n, ...)` and `TS_REGION_END()` with ascending stripe ordering to prevent deadlocks
-  - [ ] Integration test: 20/20 runs correct output with 0 CONFIRMED races for all racy demos
+- [x] **Phase 6: Prevention runtime**
+  - [x] `src/prevention.c` & `src/prevention.h` (striped guard locks, protected address/symbol set)
+  - [x] Dynamic live protection on first race detection
+  - [x] Pre-execution protection via `TS_PROTECT_FILE`
+  - [x] `TS_REGION_BEGIN(n, ...)` and `TS_REGION_END()` with ascending stripe ordering to prevent deadlocks
+  - [x] Integration test: 20/20 runs correct output with 0 CONFIRMED races for all racy demos (`tests/integration/test_prevention.py`)
 
-- [ ] **Phase 7: Trace logging, Python CLI, replay & HTML report**
-  - [ ] `src/trace.c` & `src/trace.h` JSONL event trace writer (`TS_TRACE`)
-  - [ ] Python CLI: `tools/sentinel/__main__.py` (`run`, `report`, `replay`, `demo`, `bench`)
-  - [ ] Python offline replay engine: `tools/sentinel/replay.py` verifying against C detector results
-  - [ ] Standalone HTML report generator with inlined Plotly.js in `tools/sentinel/report_html.py`
-  - [ ] Verify `replay` outputs `MATCH` for all demo traces
+- [x] **Phase 7: Trace logging, Python CLI, replay & HTML report**
+  - [x] `src/trace.c` & `src/trace.h` JSONL event trace writer (`TS_TRACE`), with sound trace compaction
+  - [x] Python CLI: `tools/sentinel/__main__.py` (`run`, `report`, `replay`, `demo`, `bench`) — `bench` body is Phase 8
+  - [x] Python offline replay engine: `tools/sentinel/replay.py` verifying against C detector results
+  - [x] Standalone HTML report generator with inlined Plotly.js in `tools/sentinel/report_html.py`
+  - [x] Verify `replay` outputs `MATCH` for all demo traces (`tests/integration/test_replay.py`, hybrid + hb, exact race-set equality)
 
 - [ ] **Phase 8: Evaluation & benchmarks**
   - [ ] Benchmark runner `tools/sentinel/bench.py` and `make bench`
@@ -84,4 +84,25 @@
 ---
 
 ## Deviations from Spec
-*None so far.*
+- **Atomicity regions in demos 04 and 12.** Per-access guard locks serialise individual
+  reads/writes but cannot make a read-then-dependent-write atomic, so check-then-act (04) and
+  list push (12) still lost updates in prevent mode. Both demos now wrap the compound operation in
+  `TS_REGION_BEGIN/END`, which is a no-op in detect mode (detect verdicts unchanged).
+- **Re-entrant guard stripes.** Each thread keeps a per-stripe hold depth, so an access inside a
+  region whose stripe is already held does not self-deadlock, and an unlock with no matching lock
+  (address became protected between the pre and post hooks via live protection) is a no-op.
+- **Region name resolution.** `TS_REGION_BEGIN` passes its stringified arguments; the runtime strips
+  `&` to recover variable names so protect-file entries match before their address is bound.
+- **Known limitation:** a region must list every protected variable it touches; accessing another
+  protected variable inside a region takes that stripe out of ascending order.
+- **Replay uses recorded clocks.** Each access event carries the runtime's HB/ST clocks and held
+  locks; `replay.py` independently re-implements shadow memory, the hybrid/HB classification and the
+  report de-duplication over them, rather than re-deriving clocks from sync events. It compares the
+  exact set of (address, location pair, verdict) against the C report, not just counts. Lockset-mode
+  and prevent-mode runs are not replayable (rejected with a clear error).
+- **Trace compaction.** A full trace was ~350 MB / 2.3M events for demo 01. In detect mode the runtime
+  omits accesses that provably cannot produce a race (same-thread run after that thread's write,
+  flushing the final records when another thread arrives / on free / at exit; identical re-reads),
+  and lock/unlock pairs re-acquired by the previous holder. Demo 01 is now ~44 MB / 300k events.
+- **`sentinel run` arguments.** Binary arguments go after `--` (previously every flag after the
+  binary path, including `--report`, was silently passed to the binary).

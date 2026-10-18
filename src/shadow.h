@@ -31,6 +31,15 @@ typedef struct ts_shadow_entry {
     /* Eraser lockset tracker */
     eraser_tracker_t eraser;
     
+    /* Trace compaction (see detector.c): the thread currently on a same-thread run of
+     * accesses, whether it has written during the run, and which of its records have
+     * been elided from the trace and are still to be flushed. */
+    uint32_t trace_run_tid;
+    bool trace_run_valid;
+    bool trace_run_written;
+    bool trace_pending_write;
+    bool trace_pending_read;
+    
     struct ts_shadow_entry *next;
 } ts_shadow_entry_t;
 
@@ -39,5 +48,6 @@ void shadow_shutdown(void);
 ts_shadow_entry_t *shadow_get_or_create(const void *addr, const char *var_name);
 ts_shadow_entry_t *shadow_lookup(const void *addr);
 void shadow_free_entry(const void *addr);
+void shadow_for_each(void (*fn)(ts_shadow_entry_t *entry));
 
 #endif /* SHADOW_H */

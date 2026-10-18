@@ -28,6 +28,11 @@ static int             g_guard_lock_ids[TS_GUARD_STRIPES];
 static __thread int  t_region_stripes[MAX_REGION_STRIPES];
 static __thread int  t_region_count = 0;
 
+/* Per-thread hold depth for each stripe. Makes guard locking re-entrant (an access
+ * inside a TS_REGION whose stripe the region already holds) and makes an unlock with
+ * no matching lock a no-op (an address that became protected between pre and post). */
+static __thread int  t_stripe_depth[TS_GUARD_STRIPES];
+
 int prevention_get_stripe(const void *addr) {
     uint64_t x = (uint64_t)(uintptr_t)addr;
     x ^= x >> 30;
@@ -94,24 +99,27 @@ void prevention_shutdown(void) {
 
 bool prevention_is_protected(const void *addr, const char *var_name, const char *loc) {
     uintptr_t uaddr = (uintptr_t)addr;
+    /* Called without the runtime lock: items are published by an acquire/release count */
+    int count = __atomic_load_n(&g_protected_count, __ATOMIC_ACQUIRE);
     
     /* 1. Fast match by runtime address */
-    for (int i = 0; i < g_protected_count; i++) {
-        if (g_protected_items[i].addr == uaddr && uaddr != 0) {
+    for (int i = 0; i < count; i++) {
+        if (uaddr != 0 && __atomic_load_n(&g_protected_items[i].addr, __ATOMIC_RELAXED) == uaddr) {
             return true;
         }
     }
     
     /* 2. Match by variable name from protect file */
     if (var_name && var_name[0]) {
-        for (int i = 0; i < g_protected_count; i++) {
+        for (int i = 0; i < count; i++) {
             if (strcmp(g_protected_items[i].var_name, var_name) == 0) {
-                if (g_protected_items[i].addr == 0 && uaddr != 0) {
-                    /* Bind the runtime address */
-                    g_protected_items[i].addr = uaddr;
-                    if (loc && loc[0]) {
-                        snprintf(g_protected_items[i].loc, sizeof(g_protected_items[i].loc), "%s", loc);
-                    }
+                uintptr_t unbound = 0;
+                /* Bind the runtime address; only the winning thread records the location */
+                if (uaddr != 0 &&
+                    __atomic_compare_exchange_n(&g_protected_items[i].addr, &unbound, uaddr, false,
+                                                __ATOMIC_RELAXED, __ATOMIC_RELAXED) &&
+                    loc && loc[0]) {
+                    snprintf(g_protected_items[i].loc, sizeof(g_protected_items[i].loc), "%s", loc);
                 }
                 return true;
             }
@@ -128,7 +136,7 @@ void prevention_add_protected(const void *addr, const char *var_name, const char
         }
     }
     if (g_protected_count < MAX_PROTECTED_ITEMS) {
-        protected_item_t *item = &g_protected_items[g_protected_count++];
+        protected_item_t *item = &g_protected_items[g_protected_count];
         item->addr = uaddr;
         item->var_name[0] = '\0';
         if (var_name) {
@@ -139,6 +147,7 @@ void prevention_add_protected(const void *addr, const char *var_name, const char
             snprintf(item->loc, sizeof(item->loc), "%s", loc);
         }
         item->from_file = false;
+        __atomic_store_n(&g_protected_count, g_protected_count + 1, __ATOMIC_RELEASE);
         
         trace_record_event(ts_get_tid(), "protect", addr, -1, var_name, loc, 0, NULL, NULL);
     }
@@ -146,6 +155,7 @@ void prevention_add_protected(const void *addr, const char *var_name, const char
 
 void prevention_lock_stripe(int stripe) {
     if (stripe < 0 || stripe >= TS_GUARD_STRIPES) return;
+    if (t_stripe_depth[stripe]++ > 0) return;
     pthread_mutex_lock(&g_guard_stripes[stripe]);
     
     ts_lock_runtime();
@@ -166,6 +176,8 @@ void prevention_lock_stripe(int stripe) {
 
 void prevention_unlock_stripe(int stripe) {
     if (stripe < 0 || stripe >= TS_GUARD_STRIPES) return;
+    if (t_stripe_depth[stripe] == 0) return;
+    if (--t_stripe_depth[stripe] > 0) return;
     
     ts_lock_runtime();
     uint32_t tid = ts_get_tid();
@@ -193,16 +205,16 @@ void prevention_unlock_guard_for_addr(const void *addr) {
     prevention_unlock_stripe(stripe);
 }
 
-void prevention_region_begin(int n, void *addrs[]) {
+void prevention_region_begin(int n, void *addrs[], const char *names[]) {
     if (g_ts_config.mode != TS_MODE_PREVENT || n <= 0) return;
     
     /* Collect stripes for any protected address in the region */
     int stripes[MAX_REGION_STRIPES];
     int count = 0;
     
-    ts_lock_runtime();
     for (int i = 0; i < n; i++) {
-        if (prevention_is_protected(addrs[i], NULL, NULL)) {
+        /* The name lets protect-file entries match before their first access binds an address */
+        if (prevention_is_protected(addrs[i], names ? names[i] : NULL, NULL)) {
             int st = prevention_get_stripe(addrs[i]);
             /* Avoid duplicates */
             bool dup = false;
@@ -217,7 +229,6 @@ void prevention_region_begin(int n, void *addrs[]) {
             }
         }
     }
-    ts_unlock_runtime();
     
     /* Sort stripes in ascending order for deadlock avoidance */
     for (int i = 0; i < count - 1; i++) {

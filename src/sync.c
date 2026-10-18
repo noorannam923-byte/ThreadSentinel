@@ -14,6 +14,11 @@ typedef struct {
     pthread_mutex_t *mutex;
     int lock_id;
     vector_clock_t hb_clock; /* L_m: clock of the last thread to unlock */
+    /* Trace compaction: a re-acquisition by the thread that last held the mutex carries
+     * no cross-thread ordering, so its lock/unlock pair is not traced. */
+    uint32_t trace_last_tid;
+    bool trace_seen;
+    bool trace_held_elided;
 } ts_mutex_record_t;
 
 typedef struct {
@@ -69,6 +74,14 @@ static ts_mutex_record_t *get_or_create_mutex(pthread_mutex_t *mutex) {
     return rec;
 }
 
+/* Decide whether this acquisition of rec by tid is traced; returns true if it is. */
+static bool trace_note_acquire(ts_mutex_record_t *rec, uint32_t tid) {
+    rec->trace_held_elided = rec->trace_seen && rec->trace_last_tid == tid;
+    rec->trace_seen = true;
+    rec->trace_last_tid = tid;
+    return !rec->trace_held_elided;
+}
+
 static ts_cond_record_t *get_or_create_cond(pthread_cond_t *cond) {
     for (int i = 0; i < g_cond_count; i++) {
         if (g_cond_table[i].cond == cond) {
@@ -120,7 +133,9 @@ int ts_mutex_lock(pthread_mutex_t *mutex) {
     vc_join(&tinfo->hb_clock, &rec->hb_clock);
     lockset_add_held(&tinfo->locks_held, rec->lock_id);
     
-    trace_record_event(tid, "lock", mutex, rec->lock_id, NULL, NULL, 0, &tinfo->hb_clock, &tinfo->st_clock);
+    if (trace_note_acquire(rec, tid)) {
+        trace_record_event(tid, "lock", mutex, rec->lock_id, NULL, NULL, 0, &tinfo->hb_clock, &tinfo->st_clock);
+    }
     
     ts_unlock_runtime();
     return 0;
@@ -139,7 +154,9 @@ int ts_mutex_trylock(pthread_mutex_t *mutex) {
     vc_join(&tinfo->hb_clock, &rec->hb_clock);
     lockset_add_held(&tinfo->locks_held, rec->lock_id);
     
-    trace_record_event(tid, "lock", mutex, rec->lock_id, NULL, NULL, 0, &tinfo->hb_clock, &tinfo->st_clock);
+    if (trace_note_acquire(rec, tid)) {
+        trace_record_event(tid, "lock", mutex, rec->lock_id, NULL, NULL, 0, &tinfo->hb_clock, &tinfo->st_clock);
+    }
     
     ts_unlock_runtime();
     return 0;
@@ -156,7 +173,9 @@ int ts_mutex_unlock(pthread_mutex_t *mutex) {
     vc_increment(&tinfo->hb_clock, tid);
     lockset_remove_held(&tinfo->locks_held, rec->lock_id);
     
-    trace_record_event(tid, "unlock", mutex, rec->lock_id, NULL, NULL, 0, &tinfo->hb_clock, &tinfo->st_clock);
+    if (!rec->trace_held_elided) {
+        trace_record_event(tid, "unlock", mutex, rec->lock_id, NULL, NULL, 0, &tinfo->hb_clock, &tinfo->st_clock);
+    }
     
     ts_unlock_runtime();
     return pthread_mutex_unlock(mutex);
@@ -228,6 +247,10 @@ int ts_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) {
     lockset_add_held(&tinfo->locks_held, mrec->lock_id);
     
     trace_record_event(tid, "cond_wait", cond, mrec->lock_id, NULL, NULL, 0, &tinfo->hb_clock, &tinfo->st_clock);
+    /* The wait released the mutex, so the reacquisition is always traced */
+    mrec->trace_seen = true;
+    mrec->trace_last_tid = tid;
+    mrec->trace_held_elided = false;
     
     ts_unlock_runtime();
     return ret;

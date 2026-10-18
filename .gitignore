@@ -18,7 +18,11 @@ results/*.json
 results/*.jsonl
 results/*.html
 results/bench/*.csv
+results/traces/
 !results/samples/
 
 # Demos binaries
 demos/bin/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
