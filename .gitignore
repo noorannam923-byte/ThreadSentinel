@@ -19,6 +19,7 @@ results/*.jsonl
 results/*.html
 results/bench/*.csv
 results/traces/
+results/showcase/
 results/bench/scratch/
 !results/samples/
 

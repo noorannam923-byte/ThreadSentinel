@@ -51,7 +51,7 @@ VENV_PIP = $(VENV)/bin/pip
 VENV_PYTHON = $(VENV)/bin/python
 VENV_PYTEST = $(VENV)/bin/pytest
 
-.PHONY: all demos baseline bench-bins test unit-test integration-test setup demo-all bench valgrind clean
+.PHONY: all demos baseline bench-bins test unit-test integration-test setup demo-all bench valgrind showcase clean
 
 all: $(STATIC_LIB) $(SHARED_LIB) $(PRELOAD_LIB) demos
 
@@ -146,6 +146,10 @@ bench: all baseline bench-bins
 
 valgrind: all
 	bash tools/valgrind_all.sh
+
+# Guided feature tour; `bash tools/showcase.sh --pause` waits between steps
+showcase: all baseline
+	@bash tools/showcase.sh
 
 clean:
 	rm -rf $(BUILD_DIR) $(DEMOS_BIN) $(TESTS_BIN) $(BENCH_BIN) $(STATIC_LIB) $(SHARED_LIB) $(PRELOAD_LIB) ts_report.json

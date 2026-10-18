@@ -220,6 +220,7 @@ docs/                  ARCHITECTURE, ALGORITHMS, EVALUATION, VIVA_QA, REPORT_OUT
 | `make test` | unit tests and integration tests (about 6 minutes) |
 | `make bench` | evaluation; regenerates `docs/EVALUATION.md` |
 | `make valgrind` | memcheck on every demo (prevent mode with leak check, detect mode) |
+| `make showcase` | guided tour of every feature (`bash tools/showcase.sh --pause` for live demos) |
 | `make clean` | remove build outputs |
 
 > **TSan on recent kernels:** gcc's TSan aborts with "unexpected memory mapping" when
